@@ -1,17 +1,58 @@
 import { StyleSheet } from 'react-native';
-
-import EditScreenInfo from '@/components/EditScreenInfo';
+import React from 'react';
 import { Text, View } from '@/components/Themed';
+import AdoptButton from '@/components/Button';
+import { useFonts } from 'expo-font';
+import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
+import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
+import { Image } from 'react-native';
 
-export default function TabOneScreen() {
+const Meau_marca_2 = require('@/assets/images/Meau_marca_2.png');
+
+
+const App: React.FC = () => {
+  const [fontsLoaded] = useFonts({
+    'Courgette': CourgetteRegular, 
+    'Roboto': RobotoRegular
+  });
+
+  if (!fontsLoaded) {
+    return <Text>Carregando fontes...</Text>;
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <View style={styles.separator}/>
+      
+      <Text style={styles.title}>Olá!</Text>
+
+      <View style={styles.separator}/>
+
+      <View style={styles.container}>
+        <Text style={styles.paragraph}>Bem vindo ao Meau!</Text>
+        <Text style={styles.paragraph}>Aqui você pode adotar, doar e ajudar</Text>
+        <Text style={styles.paragraph}>cães e gatos com facilidade.</Text>
+        <Text style={styles.paragraph}>Qual o seu interesse?</Text>
+      </View>
+
+      <View style={styles.separator}/>
+
+      <AdoptButton title='ADOTAR' />
+      <AdoptButton title="AJUDAR"/>
+      <AdoptButton title="CADASTRAR ANIMAL"/>
+
+      <View style={styles.separator}/>
+
+      <Text style={styles.loginButton}>login</Text>
+
+      <View style={styles.separator}/>
+
+      <Image source={Meau_marca_2} style={styles.image}/>
     </View>
   );
-}
+};
+
+export default App;
 
 const styles = StyleSheet.create({
   container: {
@@ -20,12 +61,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 72,
+    color: '#ffd358',
+    fontFamily: 'Courgette',
   },
   separator: {
-    marginVertical: 30,
+    marginVertical: 15,
     height: 1,
     width: '80%',
   },
+  paragraph: {
+    fontSize: 16,
+    color: '#757575',
+    fontFamily: 'Roboto',
+    textAlign: 'justify',
+  },
+  loginButton: {
+    fontSize: 16,
+    color: '#88c9bf',
+    fontFamily: 'Roboto',
+  },
+  image: {
+    width: 122,
+    height: 44,
+    resizeMode: 'contain', // Adjust as needed (cover, stretch, etc.)
+    marginBottom: 20, // Optional spacing below the image
+  },
 });
+
