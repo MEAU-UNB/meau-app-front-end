@@ -1,11 +1,13 @@
-import { Text, View } from "./Themed";
-import { StyleSheet } from 'react-native';
+import { Text } from "./Themed";
+import {  StyleSheet, Pressable } from 'react-native';
 
-export default function AdoptButton(props: { title: string}) {
+
+
+export default function AdoptButton(props: { onPress : () => void , title: string}) {
     return (
-      <View style={styles.buttonContainer}>
-        <Text style={styles.buttonText}>{props.title}</Text>
-      </View>
+    <Pressable style={styles.buttonContainer} onPress={props.onPress}>
+      <Text style={styles.buttonText}>{props.title}</Text>
+    </Pressable>
     );
   };
 
@@ -18,7 +20,7 @@ const styles = StyleSheet.create({
         height: 50,
         alignItems: "center",
         justifyContent: "center",
-        marginBottom: 20,
+        marginBottom: 20
     },
     buttonText: {
         color: "#434343",
