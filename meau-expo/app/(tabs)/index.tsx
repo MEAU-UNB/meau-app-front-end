@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import React from 'react';
 import { Text, View } from '@/components/Themed';
 import AdoptButton from '@/components/Button';
@@ -21,25 +21,26 @@ const App: React.FC = () => {
   }
 
   return (
+  
     <View style={styles.container}>
       <View style={styles.separator}/>
       
       <Text style={styles.title}>Olá!</Text>
 
-      <View style={styles.separator}/>
-
+      
       <View style={styles.container}>
+        
         <Text style={styles.paragraph}>Bem vindo ao Meau!</Text>
         <Text style={styles.paragraph}>Aqui você pode adotar, doar e ajudar</Text>
         <Text style={styles.paragraph}>cães e gatos com facilidade.</Text>
         <Text style={styles.paragraph}>Qual o seu interesse?</Text>
       </View>
 
-      <View style={styles.separator}/>
+      
 
-      <AdoptButton title='ADOTAR' />
-      <AdoptButton title="AJUDAR"/>
-      <AdoptButton title="CADASTRAR ANIMAL"/>
+      <AdoptButton title='ADOTAR' onPress={() => Alert.alert('adotado')} />
+      <AdoptButton title="AJUDAR" onPress={() => Alert.alert('ajudado')}/>
+      <AdoptButton title="CADASTRAR ANIMAL" onPress={() => Alert.alert('cadastrado')}/>
 
       <View style={styles.separator}/>
 
@@ -49,6 +50,7 @@ const App: React.FC = () => {
 
       <Image source={Meau_marca_2} style={styles.image}/>
     </View>
+  
   );
 };
 
@@ -75,6 +77,7 @@ const styles = StyleSheet.create({
     color: '#757575',
     fontFamily: 'Roboto',
     textAlign: 'justify',
+    
   },
   loginButton: {
     fontSize: 16,
