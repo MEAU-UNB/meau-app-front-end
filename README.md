@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Meau App Unb
 
 Projeto de criação de um app de adoção de pets, realizado durante a matéria de Desenvolvimento de aplicativos 2/2024 da Universidade de Brasília.
@@ -21,3 +22,8 @@ Suba o projeto com npm.
 ```bash
   npm start
 ```
+=======
+# meau-app
+ 
+ 
+>>>>>>> 10c3666 (update readme)
