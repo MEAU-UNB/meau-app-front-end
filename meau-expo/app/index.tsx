@@ -6,6 +6,8 @@ import { useFonts } from 'expo-font';
 import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
 import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
 import { Image } from 'react-native';
+import { Link } from 'expo-router';
+import { router } from 'expo-router';
 
 const Meau_marca_2 = require('@/assets/images/Meau_marca_2.png');
 
@@ -38,13 +40,13 @@ const App: React.FC = () => {
 
       
 
-      <AdoptButton title='ADOTAR' onPress={() => Alert.alert('adotado')} />
-      <AdoptButton title="AJUDAR" onPress={() => Alert.alert('ajudado')}/>
-      <AdoptButton title="CADASTRAR ANIMAL" onPress={() => Alert.alert('cadastrado')}/>
+      <AdoptButton title='ADOTAR' onPress={() => router.push("/(tabs)/telaAutenticacao")}/>
+      <AdoptButton title="AJUDAR" onPress={() => router.push("/(tabs)/telaAutenticacao")}/>
+      <AdoptButton title="CADASTRAR ANIMAL" onPress={() => router.push("/(tabs)/telaAutenticacao")}/>
 
       <View style={styles.separator}/>
 
-      <Text style={styles.loginButton}>login</Text>
+      <Link href="/(tabs)/telaLoginUsuario" style={styles.loginButton}>login</Link>
 
       <View style={styles.separator}/>
 

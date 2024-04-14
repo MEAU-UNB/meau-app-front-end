@@ -4,6 +4,7 @@ import { Text, View } from '@/components/Themed';
 import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
 import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
 import { useFonts } from 'expo-font';
+import { Link, router } from 'expo-router';
 export default function TelaAutenticacao() {
   const [fontsLoaded] = useFonts({
     'Courgette': CourgetteRegular, 
@@ -24,14 +25,14 @@ export default function TelaAutenticacao() {
         esta ação sem possuir um cadastro.</Text>   
       </View>
 
-      <SharedButton title='Fazer Cadastro' onPress={() => Alert.alert('fiz cadastro')} style={{ backgroundColor: '#88c9bf' }} />
+      <SharedButton title='Fazer Cadastro' onPress={() => router.push("/(tabs)/telaCadastroUsuario")} style={{ backgroundColor: '#88c9bf' }} />
       
       <View style={styles.form}>
         <Text style={styles.paragraph}>Já possui cadastro?</Text>
       </View>
       
-      <SharedButton title="Fazer Login" onPress={() => Alert.alert('fiz login')} style={{ backgroundColor: '#88c9bf' }}/>
-      
+      <SharedButton onPress={() => router.push("/(tabs)/telaLoginUsuario")} title="Fazer Login" style={{ backgroundColor: '#88c9bf' }}/>
+
      
       
     </View>
