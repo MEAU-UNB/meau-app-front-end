@@ -9,7 +9,10 @@ import { Image } from 'react-native';
 import { Link } from 'expo-router';
 import { router } from 'expo-router';
 
+
 const Meau_marca_2 = require('@/assets/images/Meau_marca_2.png');
+
+
 
 
 const App: React.FC = () => {

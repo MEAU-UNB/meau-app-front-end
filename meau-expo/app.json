@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "meau-expo",
-    "slug": "meau-expo",
+    "slug": "meau-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -35,6 +35,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "e9561e50-885a-429a-8ac4-f0910b6d5597"
+      }
+    },
+    "owner": "gabrielbf"
   }
 }
