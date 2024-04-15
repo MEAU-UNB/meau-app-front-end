@@ -59,7 +59,7 @@ function RootLayoutNav() {
         headerTitle: "Login"
         }}/>
         <Stack.Screen name="(tabs)/telaCadastroUsuario" options={{
-        headerTitle: "Cadastro"
+        headerTitle: "Cadastro Pessoal"
         }}/>
     </Stack>
     </ThemeProvider>
