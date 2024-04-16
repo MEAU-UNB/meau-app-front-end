@@ -1,4 +1,4 @@
-import { StyleSheet, Alert, TextInput} from 'react-native';
+import { StyleSheet,Alert, TextInput} from 'react-native';
 import SharedButton from '@/components/SharedButton';
 import { Text, View } from '@/components/Themed';
 import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
@@ -6,16 +6,25 @@ import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
 import RobotoMedium from '@/assets/fonts/Roboto-Medium.ttf';
 import { useFonts } from 'expo-font';
 import React from 'react';
+import { auth } from '../../firebaseConfig';
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function TelaAutenticacao() {
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
 
-    const handleLogin = () => {
-        // Implementar a lógica de login aqui
-        console.log('Usuário:', username);
-        console.log('Senha:', password);
-    };
+    const handleLogin = async () => {  
+        // Use the imported auth object here:
+        try {
+          const response = await signInWithEmailAndPassword(auth, username, password);
+          Alert.alert('Login de' + username + 'realizado com sucesso!');
+          
+        } catch (error : any) {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            Alert.alert(errorCode, errorMessage);
+        }
+      };
     const [fontsLoaded] = useFonts({
         'Courgette': CourgetteRegular, 
         'Roboto': RobotoRegular,

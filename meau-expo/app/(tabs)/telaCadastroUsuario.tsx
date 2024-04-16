@@ -1,9 +1,64 @@
+
 import SharedButton from "@/components/SharedButton";
 import React from "react";
-import { Text, TextInput, View, StyleSheet, ScrollView, Button } from "react-native"
+import { Text, TextInput, View, StyleSheet, ScrollView, Alert, TouchableOpacity, Image } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { auth } from '../../firebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import validator from 'react-native-validator';
+import * as ImagePicker from 'expo-image-picker';
 
+  
 const TelaCadastro = () => {
+    const [email, setEmail] = React.useState('');
+    const [password, setPassword] = React.useState('');
+    const [confirmPassword, setConfirmPassword] = React.useState('');
+    const [fullName, setFullName] = React.useState('');
+    const [age, setAge] = React.useState('');
+    const [estado, setEstado] = React.useState('');
+    const [cidade, setCidade] = React.useState('');
+    const [endereco, setEndereco] = React.useState('');
+    const [phone, setPhone] = React.useState('');
+    const [username, setUsername] = React.useState('');
+    const [image, setImage] = React.useState('');
+
+    const pickImage = async () => {
+        // No permissions request is necessary for launching the image library
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+    };
+
+    const handleSignUp = async () => {
+        const emailError = validator.isEmail(email) ? '' : 'use um email válido';
+        const passwordError = validator.isLength(password, { min: 6 }) ? '' : 'Senha deve ser maior que 6 caracteres';
+        const confirmPasswordError = password === confirmPassword ? '' : 'senha e confirmar senha precisam ser iguais';
+        if (!email || !password || !confirmPassword || !username || !age) {
+            Alert.alert('Erro', 'preencha todos os campos obrigatórios');
+            return;
+          }
+        
+        if (emailError || passwordError || confirmPasswordError) {
+            const errorMessage = emailError + '\n' + passwordError + '\n' + confirmPasswordError;
+            Alert.alert('Erro', errorMessage);
+            return;
+          }
+        
+        try {
+          const response = await createUserWithEmailAndPassword(auth, email, password);
+          Alert.alert('User created:', response.user.email ?? 'Unknown');
+          // Handle successful sign-up (e.g., display success message, navigate to a different screen)
+        } catch (error: any) {
+          Alert.alert('Sign Up Error', error.message);
+        }
+      };
 
 
 //  - FOTO DE PERFIL
@@ -29,30 +84,47 @@ const TelaCadastro = () => {
                     <TextInput
                         style={styles.input}
                         placeholder="Nome completo"
+                        value={fullName}
+                        onChangeText={(text) => setFullName(text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Idade"
+                        value={age}
+                        onChangeText={(text) => setAge(text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="E-mail"
+                        value={email}
+                        keyboardType="email-address"
+                        onChangeText={(text) => setEmail(text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Estado"
+                        value={estado}
+                        onChangeText={(text) => setEstado(text)}
+
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Cidade"
+                        value={cidade}
+                        onChangeText={(text) => setCidade(text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Endereço"
+                        value={endereco}
+                        onChangeText={(text) => setEndereco(text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Telefone"
+                        value={phone}
+                        keyboardType="phone-pad"
+                        onChangeText={(text) => setPhone(text)}
                     />
 
                 </View>
@@ -64,14 +136,22 @@ const TelaCadastro = () => {
                     <TextInput
                         style={styles.input}
                         placeholder="Nome de usuário"
+                        value={username}
+                        onChangeText={(text) => setUsername(text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Senha"
+                        secureTextEntry
+                        value={password}
+                        onChangeText={(text) => setPassword(text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Confirmação de senha"
+                        secureTextEntry
+                        value={confirmPassword}
+                        onChangeText={(text) => setConfirmPassword(text)}
                     />
 
                 </View>
@@ -79,15 +159,29 @@ const TelaCadastro = () => {
                 <Text style={styles.explainText}>
                     FOTO DE PERFIL
                 </Text>
-
+                {/*
                 <View style={styles.rectangle}>
                     <View style={styles.iconContainer}>
                         <Icon name="control-point" size={24} color="#757575" />
                     </View>
                     <Text style={styles.explainText}>adicionar foto</Text>
                 </View>
+                */}
 
-                <SharedButton title="FAZER CADASTRO" style={styles.loginButton} />
+                <View style={styles.rectangle}>
+                  <TouchableOpacity onPress={pickImage} style={styles.iconContainer}> {/* TouchableOpacity for button functionality */}
+                    {image ? (
+                      <Image source={{ uri: image }} style={styles.image} /> // Display selected image
+                    ) : (
+                      <View style={styles.iconContainer}> {/* Container for icon */}
+                        <Icon name="control-point" size={24} color="#757575" /> {/* Re-introduce the icon */}
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <Text style={styles.explainText}>adicionar foto</Text>
+                </View>
+
+                <SharedButton title="FAZER CADASTRO" style={styles.loginButton} onPress={handleSignUp}/>
             </View>
         </ScrollView>
         
@@ -202,6 +296,10 @@ const styles = StyleSheet.create({
         height: 24,
         justifyContent: 'center',
         alignItems: 'center',
+      },
+      image: {
+        width: 200,
+        height: 200,
       },
 });
 
