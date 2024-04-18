@@ -2,11 +2,14 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Link, Stack } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { Pressable } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import MyDrawer from '@/components/Drawer';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -50,18 +53,9 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{
-        headerTitle: "Página Principal"
-        }}/>
-        <Stack.Screen name="(tabs)/telaAutenticacao"/>
-        <Stack.Screen name="(tabs)/telaLoginUsuario" options={{
-        headerTitle: "Login"
-        }}/>
-        <Stack.Screen name="(tabs)/telaCadastroUsuario" options={{
-        headerTitle: "Cadastro Pessoal"
-        }}/>
-    </Stack>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <MyDrawer />
+      </GestureHandlerRootView>
     </ThemeProvider>
   );
 }
