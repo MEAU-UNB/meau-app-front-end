@@ -7,17 +7,18 @@ import RobotoMedium from '@/assets/fonts/Roboto-Medium.ttf';
 import { useFonts } from 'expo-font';
 import React from 'react';
 import { auth } from '../../firebaseConfig';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword  } from "firebase/auth";
+
 
 export default function TelaAutenticacao() {
-    const [username, setUsername] = React.useState('');
+    const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
 
     const handleLogin = async () => {  
         // Use the imported auth object here:
         try {
-          const response = await signInWithEmailAndPassword(auth, username, password);
-          Alert.alert('Login de' + username + 'realizado com sucesso!');
+          const response = await signInWithEmailAndPassword(auth, email, password);
+          Alert.alert('Login de' + email + 'realizado com sucesso!');
           
         } catch (error : any) {
             const errorCode = error.code;
@@ -41,8 +42,8 @@ export default function TelaAutenticacao() {
                 <TextInput
                     style={styles.input}
                     placeholder="Nome de usuário"
-                    value={username}
-                    onChangeText={(text) => setUsername(text)}
+                    value={email}
+                    onChangeText={(text) => setEmail(text)}
                 />
 
                 <TextInput

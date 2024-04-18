@@ -5,11 +5,12 @@ import { Text, TextInput, View, StyleSheet, ScrollView, Alert, TouchableOpacity,
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { auth } from '../../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import validator from 'react-native-validator';
 import * as ImagePicker from 'expo-image-picker';
-
   
-const TelaCadastro = () => {
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+    const TelaCadastro = () => {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [confirmPassword, setConfirmPassword] = React.useState('');
@@ -21,6 +22,9 @@ const TelaCadastro = () => {
     const [phone, setPhone] = React.useState('');
     const [username, setUsername] = React.useState('');
     const [image, setImage] = React.useState('');
+    const [errorMessage, setErrorMessage] = React.useState('');
+
+    
 
     const pickImage = async () => {
         // No permissions request is necessary for launching the image library
@@ -36,30 +40,41 @@ const TelaCadastro = () => {
         }
     };
 
-    const handleSignUp = async () => {
-        const emailError = validator.isEmail(email) ? '' : 'use um email válido';
-        const passwordError = validator.isLength(password, { min: 6 }) ? '' : 'Senha deve ser maior que 6 caracteres';
-        const confirmPasswordError = password === confirmPassword ? '' : 'senha e confirmar senha precisam ser iguais';
-        if (!email || !password || !confirmPassword || !username || !age) {
-            Alert.alert('Erro', 'preencha todos os campos obrigatórios');
-            return;
-          }
-        
-        if (emailError || passwordError || confirmPasswordError) {
-            const errorMessage = emailError + '\n' + passwordError + '\n' + confirmPasswordError;
-            Alert.alert('Erro', errorMessage);
-            return;
-          }
-        
-        try {
-          const response = await createUserWithEmailAndPassword(auth, email, password);
-          Alert.alert('User created:', response.user.email ?? 'Unknown');
-          // Handle successful sign-up (e.g., display success message, navigate to a different screen)
-        } catch (error: any) {
-          Alert.alert('Sign Up Error', error.message);
-        }
-      };
+    const handleSignUp = async () => {    
 
+    setErrorMessage(''); // Clear any previous error message
+
+    // Validation checks
+    let isValid = true;
+
+    if (!email) {
+      isValid = false;
+      setErrorMessage('Informe o nome de usuário');
+    } else if (!EMAIL_REGEX.test(email)) {
+      isValid = false;
+      setErrorMessage('Email inválido');
+    }
+
+    if (!password || password.length < 6) {
+      isValid = false;
+      setErrorMessage('Senha deve ter no mínimo 6 caracteres');
+    }
+
+    if (isValid) {
+      try {
+        const response = await createUserWithEmailAndPassword(auth, email, password);
+        Alert.alert('Login de ' + email + ' realizado com sucesso!');
+      } catch (error: any) {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        Alert.alert(errorCode, errorMessage);
+      }
+    } else {
+      // Display error message using state
+      Alert.alert('Erro', errorMessage);
+    }
+    };
+    
 
 //  - FOTO DE PERFIL
 //  {adicionar foto}
@@ -171,7 +186,7 @@ const TelaCadastro = () => {
                 <View style={styles.rectangle}>
                   <TouchableOpacity onPress={pickImage} style={styles.iconContainer}> {/* TouchableOpacity for button functionality */}
                     {image ? (
-                      <Image source={{ uri: image }} style={styles.image} /> // Display selected image
+                      <Image source={{ uri: image }} resizeMode="contain" /> // Display selected image
                     ) : (
                       <View style={styles.iconContainer}> {/* Container for icon */}
                         <Icon name="control-point" size={24} color="#757575" /> {/* Re-introduce the icon */}
@@ -297,10 +312,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
       },
-      image: {
-        width: 200,
-        height: 200,
-      },
+      
 });
+
 
 export default TelaCadastro;
