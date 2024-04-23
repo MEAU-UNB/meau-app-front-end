@@ -3,12 +3,13 @@ import SharedButton from "@/components/SharedButton";
 import React from "react";
 import { Text, TextInput, View, StyleSheet, ScrollView, Alert, TouchableOpacity, Image } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { auth } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import validator from 'react-native-validator';
 import * as ImagePicker from 'expo-image-picker';
+import { doc, collection, setDoc } from "firebase/firestore";
 
-  
+const EMAIL_REGEX = /^[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9-]{2,}\.)+[a-zA-Z]{2,}$/;
+
 const TelaCadastro = () => {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -21,6 +22,7 @@ const TelaCadastro = () => {
     const [phone, setPhone] = React.useState('');
     const [username, setUsername] = React.useState('');
     const [image, setImage] = React.useState('');
+    const [errorMessage, setErrorMessage] = React.useState('');
 
     const pickImage = async () => {
         // No permissions request is necessary for launching the image library
@@ -36,36 +38,62 @@ const TelaCadastro = () => {
         }
     };
 
-    const handleSignUp = async () => {
-        const emailError = validator.isEmail(email) ? '' : 'use um email válido';
-        const passwordError = validator.isLength(password, { min: 6 }) ? '' : 'Senha deve ser maior que 6 caracteres';
-        const confirmPasswordError = password === confirmPassword ? '' : 'senha e confirmar senha precisam ser iguais';
-        if (!email || !password || !confirmPassword || !username || !age) {
-            Alert.alert('Erro', 'preencha todos os campos obrigatórios');
-            return;
-          }
-        
-        if (emailError || passwordError || confirmPasswordError) {
-            const errorMessage = emailError + '\n' + passwordError + '\n' + confirmPasswordError;
-            Alert.alert('Erro', errorMessage);
-            return;
-          }
-        
+    const handleSignUp = async () => {    
+
+    setErrorMessage(''); // Clear any previous error message
+
+    // Validation checks
+    let isValid = true;
+
+    if (!email) {
+      isValid = false;
+      setErrorMessage('Informe o nome de usuário');
+    } else if (!EMAIL_REGEX.test(email)) {
+      isValid = false;
+      setErrorMessage('Email inválido');
+    }
+
+    if (!password || password.length < 6) {
+      isValid = false;
+      setErrorMessage('Senha deve ter no mínimo 6 caracteres');
+    }
+
+    if (isValid) {
         try {
-          const response = await createUserWithEmailAndPassword(auth, email, password);
-          Alert.alert('User created:', response.user.email ?? 'Unknown');
-          // Handle successful sign-up (e.g., display success message, navigate to a different screen)
-        } catch (error: any) {
-          Alert.alert('Sign Up Error', error.message);
-        }
-      };
+            const response = await createUserWithEmailAndPassword(auth, email, password);
+            const uid = response.user.uid; // Extract the uid
+        
+            const data = {
+              id: uid,
+              email,
+              fullName,
+              age: Number(age), // Ensure age is a number
+              estado,
+              cidade,
+              endereco,
+              phone,
+              username,
+              image, // Assuming you have image handling logic
+            };
+        
+            const usersRef = collection(db, 'users'); // Reference to users collection
+            const userDocRef = doc(usersRef, uid); // Create a document reference with uid
+        
+            await setDoc(userDocRef, data); // Set data for the new user document
+        
+            console.log('User added successfully');
+            Alert.alert('Login de ' + email + ' realizado com sucesso!');
+          } catch (error: any) {
+            console.error('Error creating user:', error);
+            alert("meu erro" + error.message);
+            console.log(error.message); 
+          }
+      
+    } else {
+        alert(errorMessage); 
+    };
 
-
-//  - FOTO DE PERFIL
-//  {adicionar foto}
-// botão de fazer cadastro
-
-
+  };
     return (
         <ScrollView>
             <View style={styles.container}>
