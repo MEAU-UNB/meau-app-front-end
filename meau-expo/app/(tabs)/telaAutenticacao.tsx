@@ -5,12 +5,12 @@ import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
 import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
 import { useFonts } from 'expo-font';
 import { Link, router } from 'expo-router';
+import { isUserAuthenticated } from '@/firebaseService/AuthService';
 export default function TelaAutenticacao() {
   const [fontsLoaded] = useFonts({
     'Courgette': CourgetteRegular, 
     'Roboto': RobotoRegular
   });
-
   if (!fontsLoaded) {
     return <Text>Carregando fontes...</Text>;
   }
@@ -25,13 +25,29 @@ export default function TelaAutenticacao() {
         esta ação sem possuir um cadastro.</Text>   
       </View>
 
-      <SharedButton title='Fazer Cadastro' onPress={() => router.push("/(tabs)/telaCadastroUsuario")} style={{ backgroundColor: '#88c9bf' }} />
+      <SharedButton title='Fazer Cadastro' onPress={() => {
+    // Check if user is authenticated (replace with your logic)
+    if (!isUserAuthenticated()) {
+      router.push("/(tabs)/telaCadastroUsuario");
+    } else {
+      Alert.alert("Aviso", "Você já está logado!");
+      alert("foi pra tela lá");
+    }
+    }} style={{ backgroundColor: '#88c9bf' }} />
       
       <View style={styles.form}>
         <Text style={styles.paragraph}>Já possui cadastro?</Text>
       </View>
       
-      <SharedButton onPress={() => router.push("/(tabs)/telaLoginUsuario")} title="Fazer Login" style={{ backgroundColor: '#88c9bf' }}/>
+      <SharedButton onPress={() => {
+      // Check if user is authenticated (replace with your logic)
+      if (!isUserAuthenticated()) {
+      router.push("/(tabs)/telaLoginUsuario");
+      } else {
+        Alert.alert("Aviso", "Você já está logado!");
+      }
+  }} 
+      title="Fazer Login" style={{ backgroundColor: '#88c9bf' }}/>
 
      
       

@@ -1,4 +1,3 @@
-
 import SharedButton from "@/components/SharedButton";
 import React from "react";
 import { Text, TextInput, View, StyleSheet, ScrollView, Alert, TouchableOpacity, Image } from "react-native";
@@ -7,6 +6,7 @@ import { auth, db } from '../../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import * as ImagePicker from 'expo-image-picker';
 import { doc, collection, setDoc } from "firebase/firestore";
+import { router } from "expo-router";
 
 const EMAIL_REGEX = /^[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9-]{2,}\.)+[a-zA-Z]{2,}$/;
 
@@ -37,6 +37,10 @@ const TelaCadastro = () => {
             setImage(result.assets[0].uri);
         }
     };
+
+    const handleNavigation = () => {
+        router.push("/(tabs)/telaAutenticacao");
+      };
 
     const handleSignUp = async () => {    
 
@@ -80,9 +84,10 @@ const TelaCadastro = () => {
             const userDocRef = doc(usersRef, uid); // Create a document reference with uid
         
             await setDoc(userDocRef, data); // Set data for the new user document
-        
+            
             console.log('User added successfully');
             Alert.alert('Login de ' + email + ' realizado com sucesso!');
+            handleNavigation();
           } catch (error: any) {
             console.error('Error creating user:', error);
             alert("meu erro" + error.message);
