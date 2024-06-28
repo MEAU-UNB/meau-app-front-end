@@ -31,7 +31,8 @@ export default function TelaAutenticacao() {
       router.push("/(tabs)/telaCadastroUsuario");
     } else {
       Alert.alert("Aviso", "Você já está logado!");
-      alert("foi pra tela lá");
+      alert("voce está logado");
+      router.push("../index");
     }
     }} style={{ backgroundColor: '#88c9bf' }} />
       
@@ -45,6 +46,8 @@ export default function TelaAutenticacao() {
       router.push("/(tabs)/telaLoginUsuario");
       } else {
         Alert.alert("Aviso", "Você já está logado!");
+        alert("voce está logado");
+        router.push("../index");
       }
   }} 
       title="Fazer Login" style={{ backgroundColor: '#88c9bf' }}/>
