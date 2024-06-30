@@ -46,18 +46,22 @@ const App: React.FC = () => {
       <AdoptButton title='ADOTAR' onPress={() => {
     // Check if user is authenticated (replace with your logic)
       if (!isUserAuthenticated()) {
+        alert("não foi autenticado");
         router.push("/(tabs)/telaAutenticacao");
-      } else {
         Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-        alert("foi pra tela lá");
+      } else {
+        
+        Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
+        alert(" foi autenticado e vai para tela de adotar");
       }
     }}/>
       <AdoptButton title="AJUDAR" onPress={() => {
-    // Check if user is authenticated (replace with your logic)
+    
       if (!isUserAuthenticated()) {
         router.push("/(tabs)/telaAutenticacao");
       } else {
         Alert.alert("Aviso", "TODO: Adicionar tela de ajudar");
+        alert(" foi autenticado e vai para tela de ajudar");
         }
       }}/>
       <AdoptButton title="CADASTRAR ANIMAL" onPress={() => {
@@ -66,6 +70,7 @@ const App: React.FC = () => {
           router.push("/(tabs)/telaAutenticacao");
         } else {
           Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
+          alert(" foi autenticado e vai para cadastro de animal");
         }
       }}/>
 
