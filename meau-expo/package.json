@@ -14,13 +14,12 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
-
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-firebase/app": "^17.5.0",
     "@react-navigation/drawer": "^6.6.15",
     "@react-navigation/native": "^6.1.17",
     "@unimodules/core": "^7.1.2",
-    "expo": "^50.0.17",
+    "expo": "^51.0.17",
     "expo-constants": "~15.4.6",
     "expo-dev-client": "~3.3.11",
     "expo-font": "^11.10.3",

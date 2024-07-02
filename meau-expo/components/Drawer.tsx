@@ -5,6 +5,8 @@ import IndexScreen from '../app/index';
 import TelaAutenticacaoScreen from '../app/(tabs)/telaAutenticacao';
 import TelaLoginUsuarioScreen from '../app//(tabs)/telaLoginUsuario';
 import TelaCadastroUsuarioScreen from '../app/(tabs)/telaCadastroUsuario';
+import TelaCadastroAnimalScreen from '../app/(tabs)/telaCadastroAnimal';
+import TelaCadastro from '../app/(tabs)/telaCadastroUsuario';
 
 const Drawer = createDrawerNavigator();
 
@@ -41,6 +43,14 @@ function MyDrawer() {
         options={{
           drawerLabel: 'Cadastro Pessoal',
           title: 'Cadastro Pessoal',
+        }}
+      />
+      <Drawer.Screen
+        name="(tabs)/telaCadastroAnimal"
+        component={TelaCadastroAnimalScreen}
+        options={{
+          drawerLabel: 'Cadastro Animal',
+          title: 'Cadastro Animal',
         }}
       />
     </Drawer.Navigator>
