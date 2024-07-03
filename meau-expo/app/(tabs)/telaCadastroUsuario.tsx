@@ -202,12 +202,12 @@ const TelaCadastro = () => {
                 */}
 
                 <View style={styles.rectangle}>
-                  <TouchableOpacity onPress={pickImage} style={styles.iconContainer}> {/* TouchableOpacity for button functionality */}
+                  <TouchableOpacity onPress={pickImage} style={styles.iconContainer}>
                     {image ? (
-                      <Image source={{ uri: image }} style={styles.image} /> // Display selected image
+                      <Image source={{ uri: image }} style={styles.image} />
                     ) : (
-                      <View style={styles.iconContainer}> {/* Container for icon */}
-                        <Icon name="control-point" size={24} color="#757575" /> {/* Re-introduce the icon */}
+                      <View style={styles.iconContainer}>
+                        <Icon name="control-point" size={24} color="#757575" />
                       </View>
                     )}
                   </TouchableOpacity>
