@@ -1,325 +1,453 @@
-import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
-import { Text, View } from '@/components/Themed';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
 import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
 import RobotoMedium from '@/assets/fonts/Roboto-Medium.ttf';
-import { Image, ScrollView } from 'react-native';
+import { CheckBox } from 'react-native-elements';
+import * as ImagePicker from 'expo-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SharedButton from '@/components/SharedButton';
-import * as ImagePicker from 'expo-image-picker';
+
+type CheckboxState = {
+  medio: boolean;
+  grande: boolean;
+  filhote: boolean;
+  adulto: boolean;
+  idoso: boolean;
+  brincalhao: boolean;
+  timido: boolean;
+  calmo: boolean;
+  guarda: boolean;
+  amoroso: boolean;
+  preguicoso: boolean;
+  vacinado: boolean;
+  vermifugado: boolean;
+  castrado: boolean;
+  doente: boolean;
+  termoAdocao: boolean;
+  fotosCasa: boolean;
+  visitaPrevia: boolean;
+  acompanhamentoPos: boolean;
+  umMes: boolean;
+  tresMeses: boolean;
+  seisMeses: boolean;
+  gato: boolean;
+  cachorro: boolean;
+  macho: boolean;
+  femea: boolean;
+  pequeno: boolean;
+};
 
 const App: React.FC = () => {
+  const [selectedTab, setSelectedTab] = useState(''); // Estado inicial do tab selecionado
+  const [checkboxes, setCheckboxes] = useState<CheckboxState>({
+    termoAdocao: false,
+    fotosCasa: false,
+    visitaPrevia: false,
+    acompanhamentoPos: false,
+    umMes: false,
+    tresMeses: false,
+    seisMeses: false,
+    gato: false,
+    cachorro: false,
+    macho: false,
+    femea: false,
+    pequeno: false,
+    medio: false,
+    grande: false,
+    filhote: false,
+    adulto: false,
+    idoso: false,
+    brincalhao: false,
+    timido: false,
+    calmo: false,
+    guarda: false,
+    amoroso: false,
+    preguicoso: false,
+    vacinado: false,
+    vermifugado: false,
+    castrado: false,
+    doente: false,
+  });
 
-    const [selectedTab, setSelectedTab] = useState(''); // Initial state
+  const [image, setImage] = useState('');
 
-    const handlePress = (newTab: string) => {
-        setSelectedTab(newTab); // Update state based on button press
-    };
+  const handlePress = (newTab: string) => {
+    setSelectedTab(newTab); // Atualiza o estado com base no botão pressionado
+  };
 
-    const isRadioSelected = (value: string): boolean => true;
+  const handleCheckboxChange = (checkboxName: keyof CheckboxState) => {
+    setCheckboxes({
+      ...checkboxes,
+      [checkboxName]: !checkboxes[checkboxName],
+    });
+  };
 
-    const handleRadioClick = (e: React.ChangeEvent<HTMLInputElement>): void => console.log("click")
+  const [fontsLoaded] = useFonts({
+    'Courgette': CourgetteRegular,
+    'Roboto': RobotoRegular,
+    'RobotoMedium': RobotoMedium,
+  });
 
-    const [image, setImage] = React.useState('');
-
-    const [fontsLoaded] = useFonts({
-        'Courgette': CourgetteRegular, 
-        'Roboto': RobotoRegular,
-        'RobotoMedium': RobotoMedium,
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
     });
 
-    const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
-        });
-
-        if (!result.canceled) {
-            setImage(result.assets[0].uri);
-        }
-    };
-
-    if (!fontsLoaded) {
-        return <Text>Carregando fontes...</Text>;
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
     }
+  };
 
-    return (
-        <ScrollView>
-            <View style={styles.container}>
-                <Text>Tenho interesse em cadastrar o animal para:</Text>
+  if (!fontsLoaded) {
+    return <Text>Carregando fontes...</Text>;
+  }
 
-                <View style={styles.row}>
-                    <SharedButton title='ADOÇÃO' style={styles.button} onPress={() => handlePress('ADOÇÃO')}/>
-                    <SharedButton title='APADRINHAR' style={styles.button} onPress={() => handlePress('APADRINHAR')}/>
-                    <SharedButton title='AJUDA' style={styles.button} onPress={() => handlePress('AJUDAR')}/>
-                </View>
+  return (
+    <ScrollView>
+      <View style={styles.container}>
+        <Text>Tenho interesse em cadastrar o animal para:</Text>
 
-                <Text style={styles.subtitle}>{selectedTab ? `${selectedTab}` : 'Selecione uma opção'}</Text>
+        <View style={styles.row}>
+          <SharedButton title='ADOÇÃO' style={styles.button} onPress={() => handlePress('ADOÇÃO')} />
+          <SharedButton title='APADRINHAR' style={styles.button} onPress={() => handlePress('APADRINHAR')} />
+          <SharedButton title='AJUDA' style={styles.button} onPress={() => handlePress('AJUDAR')} />
+        </View>
 
-                <Text style={styles.explainText}>Nome do animal</Text>
+        <Text style={styles.subtitle}>{selectedTab ? `${selectedTab}` : 'Selecione uma opção'}</Text>
 
-                <TextInput style={styles.input} placeholder="Nome de animal"/>
+        <Text style={styles.explainText}>Nome do animal</Text>
+        <TextInput style={styles.input} placeholder="Nome de animal" />
 
-                <View>
-                    <Text style={styles.explainText}>Foto do animal</Text>
+        <View>
+          <Text style={styles.explainText}>Foto do animal</Text>
 
-                    <View>
-                        <TouchableOpacity onPress={pickImage} style={styles.rectangle}>
-                            {image ? (<Image source={{ uri: image }}/> ) : (
-                                <View> 
-                                    <Icon style={styles.iconContainer} name="control-point" size={24} color="#757575"/>
-                                    <Text style={styles.imageText}>adicionar fotos</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                </View>
+          <TouchableOpacity onPress={pickImage} style={styles.rectangle}>
+            {image ? (<Image source={{ uri: image }} style={styles.image} />) : (
+              <View style={styles.iconContainer}>
+                <Icon name="control-point" size={24} color="#757575" />
+                <Text style={styles.imageText}>adicionar fotos</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
 
-                <View>
-                    <Text style={styles.explainText}>Espécie</Text>
-                    <View style={styles.row}>
-                        <Text>Gato</Text>
-                        <input type='radio' id='gato' name="especie" value="gato"/>
-                        <Text>Cachorro</Text>
-                        <input type='radio' id='cachorro' name="especie" value="cachorro"/>
-                    </View>
-                </View>
+        <View>
+          <Text style={styles.explainText}>Espécie</Text>
+          <View style={styles.row}>
+            <Text>Gato</Text>
+            <CheckBox
+              checked={checkboxes.gato}
+              onPress={() => handleCheckboxChange('gato')}
+            />
+            <Text>Cachorro</Text>
+            <CheckBox
+              checked={checkboxes.cachorro}
+              onPress={() => handleCheckboxChange('cachorro')}
+            />
+          </View>
+        </View>
 
-                <View>
-                    <Text style={styles.explainText}>Sexo</Text>
-                    <View style={styles.row}>
-                        <Text>Pequeno</Text>
-                        <input type='radio' id='pequeno' name="porte" value="pequeno"/>
-                        <Text>Médio</Text>
-                        <input type='radio' id='medio' name="porte" value="medio"/>
-                        <Text>Grande</Text>
-                        <input type='radio' id='grande' name="porte" value="grande"/>
-                    </View>
-                </View>
+        <View>
+          <Text style={styles.explainText}>Sexo</Text>
+          <View style={styles.row}>
+            <Text>Macho</Text>
+            <CheckBox
+              checked={checkboxes.macho}
+              onPress={() => handleCheckboxChange('macho')}
+            />
+            <Text>Fêmea</Text>
+            <CheckBox
+              checked={checkboxes.femea}
+              onPress={() => handleCheckboxChange('femea')}
+            />
+          </View>
+        </View>
 
-                <View>
-                    <Text style={styles.explainText}>Porte</Text>
-                    <View style={styles.row}>
-                        <Text>Pequeno</Text>
-                        <input type='radio' id='pequeno' name="porte" value="pequeno"/>
-                        <Text>Médio</Text>
-                        <input type='radio' id='medio' name="porte" value="medio"/>
-                        <Text>Grande</Text>
-                        <input type='radio' id='grande' name="porte" value="grande"/>
-                    </View>
-                </View>
+        <View>
+          <Text style={styles.explainText}>Porte</Text>
+          <View style={styles.row}>
+            <Text>Pequeno</Text>
+            <CheckBox
+              checked={checkboxes.pequeno}
+              onPress={() => handleCheckboxChange('pequeno')}
+            />
+            <Text>Médio</Text>
+            <CheckBox
+              checked={checkboxes.medio}
+              onPress={() => handleCheckboxChange('medio')}
+            />
+            <Text>Grande</Text>
+            <CheckBox
+              checked={checkboxes.grande}
+              onPress={() => handleCheckboxChange('grande')}
+            />
+          </View>
+        </View>
 
-                <View>
-                    <Text style={styles.explainText}>Idade</Text>
-                    <View style={styles.row}>
-                        <Text>Filhote</Text>
-                        <input type='radio' id='filhote' name="idade" value="filhote"/>
-                        <Text>Adulto</Text>
-                        <input type='radio' id='Adulto' name="idade" value="Adulto"/>
-                        <Text>Idoso</Text>
-                        <input type='radio' id='Idoso' name="idade" value="Idoso"/>
-                    </View>
-                </View>
+        <View>
+          <Text style={styles.explainText}>Idade</Text>
+          <View style={styles.row}>
+            <Text>Filhote</Text>
+            <CheckBox
+              checked={checkboxes.filhote}
+              onPress={() => handleCheckboxChange('filhote')}
+            />
+            <Text>Adulto</Text>
+            <CheckBox
+              checked={checkboxes.adulto}
+              onPress={() => handleCheckboxChange('adulto')}
+            />
+            <Text>Idoso</Text>
+            <CheckBox
+              checked={checkboxes.idoso}
+              onPress={() => handleCheckboxChange('idoso')}
+            />
+          </View>
+        </View>
 
-                <View>
-                    <Text style={styles.explainText}>Temperamento</Text>
+        <View>
+          <Text style={styles.explainText}>Temperamento</Text>
+          <View style={styles.row}>
+            <Text>Brincalhão</Text>
+            <CheckBox
+              checked={checkboxes.timido}
+              onPress={() => handleCheckboxChange('timido')}
+            />
+            <Text>Tímido</Text>
+            <CheckBox
+              checked={checkboxes.calmo}
+              onPress={() => handleCheckboxChange('calmo')}
+            />
+            <Text>Calmo</Text>
+            <CheckBox
+              checked={checkboxes.calmo}
+              onPress={() => handleCheckboxChange('calmo')}
+            />
+          </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Brincalhão</Text>
-                        <input type='checkbox'/>
-                        <Text>Tímido</Text>
-                        <input type='checkbox'/>
-                        <Text>Calmo</Text>
-                    </View>
+          <View style={styles.row}>
+            <Text>Guarda</Text>
+            <CheckBox
+              checked={checkboxes.amoroso}
+              onPress={() => handleCheckboxChange('amoroso')}
+            />
+            <Text>Amoroso</Text>
+            <CheckBox
+              checked={checkboxes.preguicoso}
+              onPress={() => handleCheckboxChange('preguicoso')}
+            />
+            <Text>Preguiçoso</Text>
+            <CheckBox
+              checked={checkboxes.guarda}
+              onPress={() => handleCheckboxChange('guarda')}
+            />
+          </View>
+        </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Guarda</Text>
-                        <input type='checkbox'/>
-                        <Text>Amoroso</Text>
-                        <input type='checkbox'/>
-                        <Text>Preguiçoso</Text>
-                    </View>
+        <View>
+          <Text style={styles.explainText}>Saúde</Text>
+          <View style={styles.row}>
+            <Text>Vacinado</Text>
+            <CheckBox
+              checked={checkboxes.vacinado}
+              onPress={() => handleCheckboxChange('vacinado')}
+            />
+            <Text>Vermifugado</Text>
+            <CheckBox
+              checked={checkboxes.vermifugado}
+              onPress={() => handleCheckboxChange('vermifugado')}
+            />
+          </View>
 
-                </View>
+          <View style={styles.row}>
+            <Text>Castrado</Text>
+            <CheckBox
+              checked={checkboxes.castrado}
+              onPress={() => handleCheckboxChange('castrado')}
+            />
+            <Text>Doente</Text>
+            <CheckBox
+              checked={checkboxes.doente}
+              onPress={() => handleCheckboxChange('doente')}
+            />
+          </View>
 
-                <View>
-                    <Text style={styles.explainText}>Saúde</Text>
+          <TextInput style={styles.input} placeholder="Doenças do animal" />
+        </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Vacinado</Text>
-                        <input type='checkbox'/>
-                        <Text>Vermifugado</Text>
-                    </View>
+        <View>
+          <Text style={styles.explainText}>Exigências para Adoção</Text>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Castrado</Text>
-                        <input type='checkbox'/>
-                        <Text>Doente</Text>
-                    </View>
+          <View style={styles.row}>
+            <CheckBox
+              checked={checkboxes.termoAdocao}
+              onPress={() => handleCheckboxChange('termoAdocao')}
+            />
+            <Text>Termo de adoção</Text>
+          </View>
 
-                    <TextInput style={styles.input} placeholder="Doenças do animal"/>
-                </View>
+          <View style={styles.row}>
+            <CheckBox
+              checked={checkboxes.fotosCasa}
+              onPress={() => handleCheckboxChange('fotosCasa')}
+            />
+            <Text>Fotos da casa</Text>
+          </View>
 
-                <View>
-                    <Text style={styles.explainText}>Exigências para Adoção</Text>
-                    
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Termo de adoção</Text>
-                    </View>
-                    
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Fotos da casa</Text>
-                    </View>
+          <View style={styles.row}>
+            <CheckBox
+              checked={checkboxes.visitaPrevia}
+              onPress={() => handleCheckboxChange('visitaPrevia')}
+            />
+            <Text>Visita prévia ao animal</Text>
+          </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Visita prévia ao animal</Text>
-                    </View>
+          <View style={styles.row}>
+            <CheckBox
+              checked={checkboxes.acompanhamentoPos}
+              onPress={() => handleCheckboxChange('acompanhamentoPos')}
+            />
+            <Text>Acompanhamento pós adoção</Text>
+          </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>Acompanhamento pós adoção</Text>
-                    </View>
+          <View style={styles.row}>
+            <CheckBox
+              checked={checkboxes.umMes}
+              onPress={() => handleCheckboxChange('umMes')}
+            />
+            <Text>1 mês</Text>
+          </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>1 mês</Text>
-                    </View>
+          <View style={styles.row}>
+            <CheckBox
+              checked={checkboxes.tresMeses}
+              onPress={() => handleCheckboxChange('tresMeses')}
+            />
+            <Text>3 meses</Text>
+          </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>3 meses</Text>
-                    </View>
+          <View style={styles.row}>
+            <CheckBox
+              checked={checkboxes.seisMeses}
+              onPress={() => handleCheckboxChange('seisMeses')}
+            />
+            <Text>6 meses</Text>
+          </View>
+        </View>
 
-                    <View style={styles.row}>
-                        <input type='checkbox'/>
-                        <Text>6 meses</Text>
-                    </View>
-                </View>
+        <View>
+          <Text style={styles.explainText}>Sobre o animal</Text>
+          <TextInput style={styles.input} placeholder="Compartilhe a história do animal" />
+        </View>
 
-                <View>
-                    <Text style={styles.explainText}>Sobre o animal</Text>
-                    <TextInput style={styles.input} placeholder="Compartilhe a história do animal"/>
-                </View>
+        <SharedButton title='COLOCAR PARA ADOÇÃO' style={styles.submitButton} />
 
-                <SharedButton title='COLOCAR PARA ADOÇÃO' style={styles.submitButton}/>
-
-            </View>               
-        </ScrollView>
+      </View>
+    </ScrollView>
   );
 };
 
 export default App;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
-        paddingLeft: 24,
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    paddingLeft: 24,
+  },
+  title: {
+    fontFamily: 'Roboto',
+    fontSize: 14,
+    color: '#757575',
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#434343',
+    fontFamily: 'RobotoMedium',
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 16,
+    justifyContent: 'flex-start',
+  },
+  separator: {
+    marginVertical: 15,
+    height: 1,
+    width: '80%',
+  },
+  inputContainer: {
+    paddingTop: 32,
+    paddingBottom: 28,
+    width: '100%',
+  },
+  input: {
+    width: 312,
+    paddingVertical: 10,
+    marginVertical: 10,
+    color: '#bdbdbd',
+    fontSize: 14,
+    fontFamily: 'Roboto',
+  },
+  explainText: {
+    color: '#f7a800',
+    fontSize: 12,
+    fontFamily: 'Roboto',
+  },
+  imageText: {
+    fontFamily: 'Roboto',
+    fontSize: 14,
+    color: '#757575',
+  },
+  rectangle: {
+    width: 312,
+    height: 128,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: '#f1f2f2',
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
     },
-    title:{
-        fontFamily: 'Roboto',
-        fontSize: 14,
-        color: '#757575',
-        marginTop: 16,
-        marginBottom: 16,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#434343',
-        fontFamily: 'RobotoMedium',
-        marginTop: 16,
-        marginBottom: 16,
-    },
-    row: {
-        marginTop: 16,
-        marginBottom: 16,
-        flexDirection: 'row',
-    },
-    separator: {
-        marginVertical: 15,
-        height: 1,
-        width: '80%',
-    },
-    inputContainer:{
-        paddingTop: 32,
-        paddingBottom: 28,
-        width: '100%',
-    },
-    input: {
-        width: 312,
-        paddingVertical: 10,
-        marginVertical: 10,
-        color: '#bdbdbd',
-        fontSize: 14,
-        fontFamily: 'Roboto',
-    },
-    explainText: {
-        color: '#f7a800',
-        fontSize: 12,
-        fontFamily: 'Roboto',
-    },
-    imageText: {
-        fontFamily: 'Roboto',
-        fontSize: 14,
-        color: '#757575',
-    },
-    rectangle: {
-        width: 312,
-        height: 128,
-        borderRadius: 2,
-        borderWidth: 1,
-        borderColor: '#f1f2f2',
-        marginBottom: 8,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 32,
-    },
-    iconContainer: {
-        width: 24,
-        height: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    image: {
-        width: 200,
-        height: 200,
-    },
-    checkbox: {
-        margin: 8,
-    },
-    paragraph: {
-        fontSize: 15,
-    },
-    button: {
-        width: 100,
-        height: 40,
-        borderRadius: 2,
-        color: '#ffd358',
-        margin: 4,
-    },
-    submitButton: {
-        borderRadius: 2,
-        color: '#ffd358',
-        marginLeft: 32,
-    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 32,
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  image: {
+    width: 200,
+    height: 200,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+  },
+  button: {
+    borderRadius: 4,
+    backgroundColor: '#ffd358',
+    margin: 4,
+    width: '30%',
+  },
+  submitButton: {
+    borderRadius: 2,
+    color: '#ffd358',
+    marginLeft: 32,
+  },
 });
