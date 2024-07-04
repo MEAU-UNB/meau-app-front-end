@@ -44,7 +44,7 @@ const App: React.FC = () => {
       
 
       <AdoptButton title='ADOTAR' onPress={() => {
-    // Check if user is authenticated (replace with your logic)
+    // Check if user is authenticated
       if (!isUserAuthenticated()) {
         alert("não foi autenticado");
         router.push("/(tabs)/telaAutenticacao");
