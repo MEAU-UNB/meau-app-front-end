@@ -7,6 +7,8 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import * as ImagePicker from 'expo-image-picker';
 import { doc, collection, setDoc } from "firebase/firestore";
 import { router } from "expo-router";
+import * as FileSystem from 'expo-file-system';
+
 
 const EMAIL_REGEX = /^[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9-]{2,}\.)+[a-zA-Z]{2,}$/;
 
@@ -25,16 +27,17 @@ const TelaCadastro = () => {
     const [errorMessage, setErrorMessage] = React.useState('');
 
     const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
-        });
+        let result = await  ImagePicker.launchImageLibraryAsync({
+            mediaTypes:await ImagePicker.MediaTypeOptions.All,
+            allowsEditing:true,
+            aspect:[4,3],
+            quality:0.5
+        })
 
         if (!result.canceled) {
-            setImage(result.assets[0].uri);
+            const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
+
+            setImage(base64);
         }
     };
 
