@@ -24,6 +24,6 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: "#434343",
-        fontSize: 12,
+        fontSize: 14,
     },
 });
