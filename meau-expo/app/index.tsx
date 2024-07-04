@@ -6,8 +6,8 @@ import { useFonts } from 'expo-font';
 import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
 import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
 import { Image } from 'react-native';
-import { Link } from 'expo-router';
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { isUserAuthenticated } from '@/firebaseService/AuthService';
 
 
 const Meau_marca_2 = require('@/assets/images/Meau_marca_2.png');
@@ -43,13 +43,44 @@ const App: React.FC = () => {
 
       
 
-      <AdoptButton title='ADOTAR' onPress={() => router.push("/(tabs)/telaAutenticacao")}/>
-      <AdoptButton title="AJUDAR" onPress={() => router.push("/(tabs)/telaAutenticacao")}/>
-      <AdoptButton title="CADASTRAR ANIMAL" onPress={() => router.push("/(tabs)/telaAutenticacao")}/>
+      <AdoptButton title='ADOTAR' onPress={() => {
+    // Check if user is authenticated (replace with your logic)
+      if (!isUserAuthenticated()) {
+        alert("não foi autenticado");
+        router.push("/(tabs)/telaAutenticacao");
+        Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
+      } else {
+        
+        Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
+        alert(" foi autenticado e vai para tela de adotar");
+      }
+    }}/>
+      <AdoptButton title="AJUDAR" onPress={() => {
+    
+      if (!isUserAuthenticated()) {
+        router.push("/(tabs)/telaAutenticacao");
+      } else {
+        Alert.alert("Aviso", "TODO: Adicionar tela de ajudar");
+        alert(" foi autenticado e vai para tela de ajudar");
+        }
+      }}/>
+      <AdoptButton title="CADASTRAR ANIMAL" onPress={() => {
+    // Check if user is authenticated (replace with your logic)
+        if (!isUserAuthenticated()) {
+          router.push("/(tabs)/telaAutenticacao");
+        } else {
+          Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
+          alert(" foi autenticado e vai para cadastro de animal");
+        }
+      }}/>
 
       <View style={styles.separator}/>
 
-      <Link href="/(tabs)/telaLoginUsuario" style={styles.loginButton}>login</Link>
+      {!isUserAuthenticated() && (
+        <Link href="/(tabs)/telaLoginUsuario" style={styles.loginButton}>
+          login
+        </Link>
+      )}
 
       <View style={styles.separator}/>
 

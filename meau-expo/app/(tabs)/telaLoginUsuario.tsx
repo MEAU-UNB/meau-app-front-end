@@ -8,6 +8,8 @@ import { useFonts } from 'expo-font';
 import React from 'react';
 import { auth } from '../../firebaseConfig';
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { router } from "expo-router";
+import { isUserAuthenticated } from '@/firebaseService/AuthService';
 
 export default function TelaAutenticacao() {
     const [username, setUsername] = React.useState('');
@@ -15,15 +17,22 @@ export default function TelaAutenticacao() {
 
     const handleLogin = async () => {  
         // Use the imported auth object here:
+        if (isUserAuthenticated()){
+            Alert.alert("Aviso", "Não você não pode realizar esta ação");
+            alert("Não você não pode realizar esta ação");
+            // navegar para a tela inicial: router.navigate("../index");
+        } else {
         try {
+            
           const response = await signInWithEmailAndPassword(auth, username, password);
           Alert.alert('Login de' + username + 'realizado com sucesso!');
-          
+          alert('Login de' + username + 'realizado com sucesso!');
+          router.push("../App");
         } catch (error : any) {
             const errorCode = error.code;
             const errorMessage = error.message;
             Alert.alert(errorCode, errorMessage);
-        }
+        }}
       };
     const [fontsLoaded] = useFonts({
         'Courgette': CourgetteRegular, 
