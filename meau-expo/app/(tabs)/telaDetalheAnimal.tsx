@@ -1,6 +1,5 @@
 import React from 'react';
 import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity } from 'react-native';
-import PagerView from 'react-native-pager-view';
 import AdoptButton from "@/components/Button";
 import { isUserAuthenticated } from "@/firebaseService/AuthService";
 import { router } from "expo-router";
@@ -10,28 +9,24 @@ import { MaterialIcons } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 
 const images = [
-  "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png",
   "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png"
 ];
 
 const TelaDetalheAnimal = () => {
   return (
     <ScrollView>
-      <PagerView style={styles.pagerView} initialPage={0}>
-        {images.map((image, index) => (
-          <View key={index} style={styles.carouselItem}>
-            <Image source={{ uri: image }} style={styles.carouselImage} />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={() => console.log('Liked')}>
-                <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => console.log('Shared')}>
-                <MaterialIcons name="share" size={24} color="#fff" style={styles.icon} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-      </PagerView>
+      <View>
+        <Image source={{ uri: images[0] }} style={styles.carouselItem} />
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={() => console.log('Liked')}>
+            <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => console.log('Shared')}>
+            <MaterialIcons name="share" size={24} color="#fff" style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <View style={styles.container}>
         <Text style={styles.title}>Bidu</Text>
         <View style={styles.row}>
@@ -96,8 +91,7 @@ const TelaDetalheAnimal = () => {
             <Text style={styles.underText}>Bidu é um cão muito dócil e de fácil convivência. Adora caminhadas e se dá muito bem com crianças. Tem muito medo de raios e de chuva, nesses momentos ele requer mais atenção. Está disponível para adoção pois eu e minha família o encontramos na rua e não podemos mantê-lo em nossa casa.</Text>
           </View>
         </View>
-      </View>
-      <View style={styles.container}>
+      
         <AdoptButton title='Pretendo Adotar' onPress={() => {
           if (!isUserAuthenticated()) {
             alert("não foi autenticado");
