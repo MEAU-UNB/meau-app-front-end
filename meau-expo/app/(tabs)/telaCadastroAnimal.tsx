@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
 import RobotoRegular from '@/assets/fonts/Roboto-Regular.ttf';
@@ -8,6 +8,9 @@ import { CheckBox } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SharedButton from '@/components/SharedButton';
+import { db } from '../../firebaseConfig';
+import { collection, addDoc } from "firebase/firestore";
+import { getCurrentUser } from '@/firebaseService/AuthService';
 
 type CheckboxState = {
   medio: boolean;
@@ -39,7 +42,41 @@ type CheckboxState = {
   pequeno: boolean;
 };
 
+interface HealthConditions {
+  castrado: boolean;
+  doente: boolean;
+  vermifugado: boolean;
+  vacinado: boolean;
+}
+
+interface Temperament {
+  calmo: boolean;
+  timido: boolean;
+  brincalhao: boolean;
+  guardiao: boolean;
+  amoroso: boolean;
+  preguicoso: boolean;
+}
+
+interface Demands {
+  termoAdocao: boolean;
+  fotosCasa: boolean;
+  visitaPrevia: boolean;
+  acompanhamentoPos: boolean;
+  umMes: boolean;
+  tresMeses: boolean;
+  seisMeses: boolean;
+
+}
+
+
+
+
 const App: React.FC = () => {
+
+
+  const [animalName, setAnimalName] = useState('');
+  const [sobreAnimal, setSobreAnimal] = useState('');
   const [selectedTab, setSelectedTab] = useState(''); // Estado inicial do tab selecionado
   const [checkboxes, setCheckboxes] = useState<CheckboxState>({
     termoAdocao: false,
@@ -73,9 +110,67 @@ const App: React.FC = () => {
 
   const [image, setImage] = useState('');
 
+  const handleSaveAnimal = async () => {
+    const temperamento: Temperament = {
+      calmo: checkboxes.calmo,
+      timido: checkboxes.timido,
+      brincalhao: checkboxes.brincalhao,
+      guardiao: checkboxes.guarda,
+      amoroso: checkboxes.amoroso,
+      preguicoso: checkboxes.preguicoso,
+    };
+    // Prepare animal data object
+    const initialHealthData: HealthConditions = {
+      castrado: checkboxes.castrado,
+      doente: checkboxes.doente,
+      vermifugado: checkboxes.vermifugado,
+      vacinado: checkboxes.vacinado,
+    };
+
+    const exigencias: Demands = {
+      termoAdocao: checkboxes.termoAdocao,
+      fotosCasa: checkboxes.fotosCasa,
+      visitaPrevia: checkboxes.visitaPrevia,
+      acompanhamentoPos: checkboxes.acompanhamentoPos,
+      umMes: checkboxes.umMes,
+      tresMeses: checkboxes.tresMeses,
+      seisMeses: checkboxes.seisMeses,
+    };
+    const animalData = {
+      // Extract data from your state variables here (e.g., name, image, species, etc.)
+      userId: getCurrentUser().uid,
+      animalName: animalName,
+      action: selectedTab, // Replace with your state variable name for animal name
+      image: image, // Replace with your state variable name for image URI
+      species: checkboxes.gato ? 'Gato' : 'Cachorro', // Example based on checkboxes
+      sexo: checkboxes.macho ? 'M' : 'F', // Example based on checkboxes
+      idade: checkboxes.filhote ? 'Filhote' : (checkboxes.adulto ? 'Adulto' : 'Idoso'),
+      porte: checkboxes.medio ? 'Medio' : (checkboxes.grande ? 'Grande' : 'Pequeno'),
+      temperamento: temperamento,
+      saude: initialHealthData,
+      exigencia: exigencias,
+      sobre: sobreAnimal,
+    };
+
+    // Add animal data to Firestore
+    try {
+      const animalRef = collection(db, 'animals'); // Specify your collection name
+      await addDoc(animalRef, animalData);
+      console.log('Animal data saved successfully!');
+      Alert.alert('Animal cadastrado com sucesso!');
+      // Handle success (e.g., reset form, show confirmation message)
+    } catch (error: any) {
+      console.error('Error saving animal data:', error);
+      // Handle errors (e.g., display error message)
+      Alert.alert('Erro em cadastrar animal:', error.message);
+    }
+  };
+
   const handlePress = (newTab: string) => {
     setSelectedTab(newTab); // Atualiza o estado com base no botão pressionado
   };
+
+
 
   const handleCheckboxChange = (checkboxName: keyof CheckboxState) => {
     setCheckboxes({
@@ -121,7 +216,8 @@ const App: React.FC = () => {
         <Text style={styles.subtitle}>{selectedTab ? `${selectedTab}` : 'Selecione uma opção'}</Text>
 
         <Text style={styles.explainText}>Nome do animal</Text>
-        <TextInput style={styles.input} placeholder="Nome de animal" />
+        <TextInput style={styles.input} placeholder="Nome de animal"
+          onChangeText={(text) => setAnimalName(text)} />
 
         <View>
           <Text style={styles.explainText}>Foto do animal</Text>
@@ -215,13 +311,13 @@ const App: React.FC = () => {
           <View style={styles.row}>
             <Text>Brincalhão</Text>
             <CheckBox
-              checked={checkboxes.timido}
-              onPress={() => handleCheckboxChange('timido')}
+              checked={checkboxes.brincalhao}
+              onPress={() => handleCheckboxChange('brincalhao')}
             />
             <Text>Tímido</Text>
             <CheckBox
-              checked={checkboxes.calmo}
-              onPress={() => handleCheckboxChange('calmo')}
+              checked={checkboxes.timido}
+              onPress={() => handleCheckboxChange('timido')}
             />
             <Text>Calmo</Text>
             <CheckBox
@@ -342,10 +438,11 @@ const App: React.FC = () => {
 
         <View>
           <Text style={styles.explainText}>Sobre o animal</Text>
-          <TextInput style={styles.input} placeholder="Compartilhe a história do animal" />
+          <TextInput style={styles.input} placeholder="Compartilhe a história do animal"
+            onChangeText={(text) => setSobreAnimal(text)} />
         </View>
 
-        <SharedButton title='COLOCAR PARA ADOÇÃO' style={styles.submitButton} />
+        <SharedButton title='COLOCAR PARA ADOÇÃO' style={styles.submitButton} onPress={handleSaveAnimal} />
 
       </View>
     </ScrollView>
