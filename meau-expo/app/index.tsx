@@ -17,7 +17,7 @@ const Meau_marca_2 = require('@/assets/images/Meau_marca_2.png');
 
 const App: React.FC = () => {
   const [fontsLoaded] = useFonts({
-    'Courgette': CourgetteRegular, 
+    'Courgette': CourgetteRegular,
     'Roboto': RobotoRegular
   });
 
@@ -26,55 +26,55 @@ const App: React.FC = () => {
   }
 
   return (
-  
+
     <View style={styles.container}>
-      <View style={styles.separator}/>
-      
+      <View style={styles.separator} />
+
       <Text style={styles.title}>Olá!</Text>
 
-      
+
       <View style={styles.container}>
-        
+
         <Text style={styles.paragraph}>Bem vindo ao Meau!</Text>
         <Text style={styles.paragraph}>Aqui você pode adotar, doar e ajudar</Text>
         <Text style={styles.paragraph}>cães e gatos com facilidade.</Text>
         <Text style={styles.paragraph}>Qual o seu interesse?</Text>
       </View>
 
-      
+
 
       <AdoptButton title='ADOTAR' onPress={() => {
-    // Check if user is authenticated
-      if (!isUserAuthenticated()) {
-        alert("não foi autenticado");
-        router.push("/(tabs)/telaAutenticacao");
-        Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-      } else {
-        
-        Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-        alert(" foi autenticado e vai para tela de adotar");
-      }
-    }}/>
-      <AdoptButton title="AJUDAR" onPress={() => {
-    
-      if (!isUserAuthenticated()) {
-        router.push("/(tabs)/telaAutenticacao");
-      } else {
-        Alert.alert("Aviso", "TODO: Adicionar tela de ajudar");
-        alert(" foi autenticado e vai para tela de ajudar");
+        // Check if user is authenticated
+        if (!isUserAuthenticated()) {
+          alert("não foi autenticado");
+          router.push("/(tabs)/telaAutenticacao");
+          Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
+        } else {
+
+          Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
+          alert(" foi autenticado e vai para tela de adotar");
         }
-      }}/>
-      <AdoptButton title="CADASTRAR ANIMAL" onPress={() => {
-    // Check if user is authenticated (replace with your logic)
+      }} />
+      <AdoptButton title="AJUDAR" onPress={() => {
+
         if (!isUserAuthenticated()) {
           router.push("/(tabs)/telaAutenticacao");
         } else {
-          Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-          alert(" foi autenticado e vai para cadastro de animal");
+          Alert.alert("Aviso", "TODO: Adicionar tela de ajudar");
+          alert(" foi autenticado e vai para tela de ajudar");
         }
-      }}/>
+      }} />
+      <AdoptButton title="CADASTRAR ANIMAL" onPress={() => {
+        // Check if user is authenticated (replace with your logic)
+        if (!isUserAuthenticated()) {
+          router.push("/(tabs)/telaAutenticacao");
+        } else {
+          router.push("/(tabs)/telaCadastroAnimal");
 
-      <View style={styles.separator}/>
+        }
+      }} />
+
+      <View style={styles.separator} />
 
       {!isUserAuthenticated() && (
         <Link href="/(tabs)/telaLoginUsuario" style={styles.loginButton}>
@@ -82,11 +82,11 @@ const App: React.FC = () => {
         </Link>
       )}
 
-      <View style={styles.separator}/>
+      <View style={styles.separator} />
 
-      <Image source={Meau_marca_2} style={styles.image}/>
+      <Image source={Meau_marca_2} style={styles.image} />
     </View>
-  
+
   );
 };
 
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     color: '#757575',
     fontFamily: 'Roboto',
     textAlign: 'justify',
-    
+
   },
   loginButton: {
     fontSize: 16,

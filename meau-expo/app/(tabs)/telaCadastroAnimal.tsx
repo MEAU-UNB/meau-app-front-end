@@ -11,7 +11,7 @@ import SharedButton from '@/components/SharedButton';
 import { db } from '../../firebaseConfig';
 import { collection, addDoc } from "firebase/firestore";
 import { getCurrentUser } from '@/firebaseService/AuthService';
-
+import { router } from 'expo-router';
 type CheckboxState = {
   medio: boolean;
   grande: boolean;
@@ -66,16 +66,12 @@ interface Demands {
   umMes: boolean;
   tresMeses: boolean;
   seisMeses: boolean;
-
 }
-
-
-
-
 const App: React.FC = () => {
 
 
   const [animalName, setAnimalName] = useState('');
+  const [doenca, setDoenca] = useState('');
   const [sobreAnimal, setSobreAnimal] = useState('');
   const [selectedTab, setSelectedTab] = useState(''); // Estado inicial do tab selecionado
   const [checkboxes, setCheckboxes] = useState<CheckboxState>({
@@ -139,6 +135,7 @@ const App: React.FC = () => {
     const animalData = {
       // Extract data from your state variables here (e.g., name, image, species, etc.)
       userId: getCurrentUser().uid,
+      doencaDoAnimal: doenca,
       animalName: animalName,
       action: selectedTab, // Replace with your state variable name for animal name
       image: image, // Replace with your state variable name for image URI
@@ -156,8 +153,8 @@ const App: React.FC = () => {
     try {
       const animalRef = collection(db, 'animals'); // Specify your collection name
       await addDoc(animalRef, animalData);
-      console.log('Animal data saved successfully!');
       Alert.alert('Animal cadastrado com sucesso!');
+      router.push("/index");
       // Handle success (e.g., reset form, show confirmation message)
     } catch (error: any) {
       console.error('Error saving animal data:', error);
@@ -373,7 +370,8 @@ const App: React.FC = () => {
             />
           </View>
 
-          <TextInput style={styles.input} placeholder="Doenças do animal" />
+          <TextInput style={styles.input} placeholder="Doenças do animal"
+            onChangeText={(text) => setDoenca(text)} />
         </View>
 
         <View>
