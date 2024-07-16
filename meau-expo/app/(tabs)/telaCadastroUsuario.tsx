@@ -42,7 +42,7 @@ const TelaCadastro = () => {
     };
 
     const handleNavigation = () => {
-        router.push("/(tabs)/telaAutenticacao");
+        router.push("/");
       };
 
     const handleSignUp = async () => {    
@@ -89,8 +89,8 @@ const TelaCadastro = () => {
             await setDoc(userDocRef, data); // Set data for the new user document
             
             console.log('User added successfully');
-            Alert.alert('Login de ' + email + ' realizado com sucesso!');
             handleNavigation();
+            Alert.alert('Cadastro e Login de ' + email + ' realizado com sucesso!');
           } catch (error: any) {
             console.error('Error creating user:', error);
             alert("meu erro" + error.message);

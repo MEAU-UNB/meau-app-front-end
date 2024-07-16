@@ -12,6 +12,9 @@ import { db } from '../../firebaseConfig';
 import { collection, addDoc } from "firebase/firestore";
 import { getCurrentUser } from '@/firebaseService/AuthService';
 import { router } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+
+
 type CheckboxState = {
   medio: boolean;
   grande: boolean;
@@ -67,9 +70,8 @@ interface Demands {
   tresMeses: boolean;
   seisMeses: boolean;
 }
+
 const App: React.FC = () => {
-
-
   const [animalName, setAnimalName] = useState('');
   const [doenca, setDoenca] = useState('');
   const [sobreAnimal, setSobreAnimal] = useState('');
@@ -106,6 +108,38 @@ const App: React.FC = () => {
 
   const [image, setImage] = useState('');
 
+  const resetCheckboxes = () => {
+    setCheckboxes({
+      termoAdocao: false,
+      fotosCasa: false,
+      visitaPrevia: false,
+      acompanhamentoPos: false,
+      umMes: false,
+      tresMeses: false,
+      seisMeses: false,
+      gato: false,
+      cachorro: false,
+      macho: false,
+      femea: false,
+      pequeno: false,
+      medio: false,
+      grande: false,
+      filhote: false,
+      adulto: false,
+      idoso: false,
+      brincalhao: false,
+      timido: false,
+      calmo: false,
+      guarda: false,
+      amoroso: false,
+      preguicoso: false,
+      vacinado: false,
+      vermifugado: false,
+      castrado: false,
+      doente: false,
+    });
+  };
+
   const handleSaveAnimal = async () => {
     const temperamento: Temperament = {
       calmo: checkboxes.calmo,
@@ -115,7 +149,7 @@ const App: React.FC = () => {
       amoroso: checkboxes.amoroso,
       preguicoso: checkboxes.preguicoso,
     };
-    // Prepare animal data object
+
     const initialHealthData: HealthConditions = {
       castrado: checkboxes.castrado,
       doente: checkboxes.doente,
@@ -132,15 +166,15 @@ const App: React.FC = () => {
       tresMeses: checkboxes.tresMeses,
       seisMeses: checkboxes.seisMeses,
     };
+
     const animalData = {
-      // Extract data from your state variables here (e.g., name, image, species, etc.)
       userId: getCurrentUser().uid,
       doencaDoAnimal: doenca,
       animalName: animalName,
-      action: selectedTab, // Replace with your state variable name for animal name
-      image: image, // Replace with your state variable name for image URI
-      species: checkboxes.gato ? 'Gato' : 'Cachorro', // Example based on checkboxes
-      sexo: checkboxes.macho ? 'M' : 'F', // Example based on checkboxes
+      action: selectedTab,
+      image: image,
+      species: checkboxes.gato ? 'Gato' : 'Cachorro',
+      sexo: checkboxes.macho ? 'M' : 'F',
       idade: checkboxes.filhote ? 'Filhote' : (checkboxes.adulto ? 'Adulto' : 'Idoso'),
       porte: checkboxes.medio ? 'Medio' : (checkboxes.grande ? 'Grande' : 'Pequeno'),
       temperamento: temperamento,
@@ -149,31 +183,67 @@ const App: React.FC = () => {
       sobre: sobreAnimal,
     };
 
-    // Add animal data to Firestore
     try {
-      const animalRef = collection(db, 'animals'); // Specify your collection name
+      const animalRef = collection(db, 'animals');
       await addDoc(animalRef, animalData);
+      resetCheckboxes();
+      setAnimalName('');
+      setDoenca('');
+      setSobreAnimal('');
+      setImage('');
+      router.push("/");
       Alert.alert('Animal cadastrado com sucesso!');
-      router.push("/index");
-      // Handle success (e.g., reset form, show confirmation message)
     } catch (error: any) {
       console.error('Error saving animal data:', error);
-      // Handle errors (e.g., display error message)
       Alert.alert('Erro em cadastrar animal:', error.message);
     }
   };
 
-  const handlePress = (newTab: string) => {
-    setSelectedTab(newTab); // Atualiza o estado com base no botão pressionado
-  };
-
-
-
   const handleCheckboxChange = (checkboxName: keyof CheckboxState) => {
-    setCheckboxes({
-      ...checkboxes,
-      [checkboxName]: !checkboxes[checkboxName],
-    });
+    const updatedCheckboxes = { ...checkboxes, [checkboxName]: !checkboxes[checkboxName] };
+
+    // Ensure only one checkbox per row is selected
+    if (checkboxName === 'gato' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.cachorro = false;
+    }
+    if (checkboxName === 'cachorro' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.gato = false;
+    }
+
+    if (checkboxName === 'macho' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.femea = false;
+    }
+    if (checkboxName === 'femea' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.macho = false;
+    }
+
+    if (checkboxName === 'pequeno' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.medio = false;
+      updatedCheckboxes.grande = false;
+    }
+    if (checkboxName === 'medio' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.pequeno = false;
+      updatedCheckboxes.grande = false;
+    }
+    if (checkboxName === 'grande' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.pequeno = false;
+      updatedCheckboxes.medio = false;
+    }
+
+    if (checkboxName === 'filhote' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.adulto = false;
+      updatedCheckboxes.idoso = false;
+    }
+    if (checkboxName === 'adulto' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.filhote = false;
+      updatedCheckboxes.idoso = false;
+    }
+    if (checkboxName === 'idoso' && updatedCheckboxes[checkboxName]) {
+      updatedCheckboxes.filhote = false;
+      updatedCheckboxes.adulto = false;
+    }
+
+    setCheckboxes(updatedCheckboxes);
   };
 
   const [fontsLoaded] = useFonts({
@@ -183,17 +253,19 @@ const App: React.FC = () => {
   });
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    let result = await  ImagePicker.launchImageLibraryAsync({
+        mediaTypes:await ImagePicker.MediaTypeOptions.All,
+        allowsEditing:true,
+        aspect:[4,3],
+        quality:0.5
+    })
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+        const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
+
+        setImage(base64);
     }
-  };
+};
 
   if (!fontsLoaded) {
     return <Text>Carregando fontes...</Text>;
@@ -202,25 +274,20 @@ const App: React.FC = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text>Tenho interesse em cadastrar o animal para:</Text>
-
-        <View style={styles.row}>
-          <SharedButton title='ADOÇÃO' style={styles.button} onPress={() => handlePress('ADOÇÃO')} />
-          <SharedButton title='APADRINHAR' style={styles.button} onPress={() => handlePress('APADRINHAR')} />
-          <SharedButton title='AJUDA' style={styles.button} onPress={() => handlePress('AJUDAR')} />
-        </View>
-
-        <Text style={styles.subtitle}>{selectedTab ? `${selectedTab}` : 'Selecione uma opção'}</Text>
-
         <Text style={styles.explainText}>Nome do animal</Text>
-        <TextInput style={styles.input} placeholder="Nome de animal"
-          onChangeText={(text) => setAnimalName(text)} />
+        <TextInput
+          style={styles.input}
+          placeholder="Nome de animal"
+          onChangeText={(text) => setAnimalName(text)}
+          value={animalName}
+        />
 
         <View>
           <Text style={styles.explainText}>Foto do animal</Text>
-
           <TouchableOpacity onPress={pickImage} style={styles.rectangle}>
-            {image ? (<Image source={{ uri: image }} style={styles.image} />) : (
+            {image ? (
+              <Image source={{ uri: image }} style={styles.image} />
+            ) : (
               <View style={styles.iconContainer}>
                 <Icon name="control-point" size={24} color="#757575" />
                 <Text style={styles.imageText}>adicionar fotos</Text>
@@ -326,18 +393,18 @@ const App: React.FC = () => {
           <View style={styles.row}>
             <Text>Guarda</Text>
             <CheckBox
-              checked={checkboxes.amoroso}
-              onPress={() => handleCheckboxChange('amoroso')}
+              checked={checkboxes.guarda}
+              onPress={() => handleCheckboxChange('guarda')}
             />
             <Text>Amoroso</Text>
             <CheckBox
-              checked={checkboxes.preguicoso}
-              onPress={() => handleCheckboxChange('preguicoso')}
+              checked={checkboxes.amoroso}
+              onPress={() => handleCheckboxChange('amoroso')}
             />
             <Text>Preguiçoso</Text>
             <CheckBox
-              checked={checkboxes.guarda}
-              onPress={() => handleCheckboxChange('guarda')}
+              checked={checkboxes.preguicoso}
+              onPress={() => handleCheckboxChange('preguicoso')}
             />
           </View>
         </View>
@@ -370,8 +437,12 @@ const App: React.FC = () => {
             />
           </View>
 
-          <TextInput style={styles.input} placeholder="Doenças do animal"
-            onChangeText={(text) => setDoenca(text)} />
+          <TextInput
+            style={styles.input}
+            placeholder="Doenças do animal"
+            onChangeText={(text) => setDoenca(text)}
+            value={doenca}
+          />
         </View>
 
         <View>
@@ -436,12 +507,15 @@ const App: React.FC = () => {
 
         <View>
           <Text style={styles.explainText}>Sobre o animal</Text>
-          <TextInput style={styles.input} placeholder="Compartilhe a história do animal"
-            onChangeText={(text) => setSobreAnimal(text)} />
+          <TextInput
+            style={styles.input}
+            placeholder="Compartilhe a história do animal"
+            onChangeText={(text) => setSobreAnimal(text)}
+            value={sobreAnimal}
+          />
         </View>
 
         <SharedButton title='COLOCAR PARA ADOÇÃO' style={styles.submitButton} onPress={handleSaveAnimal} />
-
       </View>
     </ScrollView>
   );
