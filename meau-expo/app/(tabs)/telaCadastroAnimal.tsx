@@ -153,8 +153,8 @@ const App: React.FC = () => {
     try {
       const animalRef = collection(db, 'animals'); // Specify your collection name
       await addDoc(animalRef, animalData);
+      router.push("/");
       Alert.alert('Animal cadastrado com sucesso!');
-      router.push("/index");
       // Handle success (e.g., reset form, show confirmation message)
     } catch (error: any) {
       console.error('Error saving animal data:', error);
@@ -202,16 +202,6 @@ const App: React.FC = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text>Tenho interesse em cadastrar o animal para:</Text>
-
-        <View style={styles.row}>
-          <SharedButton title='ADOÇÃO' style={styles.button} onPress={() => handlePress('ADOÇÃO')} />
-          <SharedButton title='APADRINHAR' style={styles.button} onPress={() => handlePress('APADRINHAR')} />
-          <SharedButton title='AJUDA' style={styles.button} onPress={() => handlePress('AJUDAR')} />
-        </View>
-
-        <Text style={styles.subtitle}>{selectedTab ? `${selectedTab}` : 'Selecione uma opção'}</Text>
-
         <Text style={styles.explainText}>Nome do animal</Text>
         <TextInput style={styles.input} placeholder="Nome de animal"
           onChangeText={(text) => setAnimalName(text)} />
