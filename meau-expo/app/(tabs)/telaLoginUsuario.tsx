@@ -1,4 +1,4 @@
-import { StyleSheet,Alert, TextInput} from 'react-native';
+import { StyleSheet, Alert, TextInput } from 'react-native';
 import SharedButton from '@/components/SharedButton';
 import { Text, View } from '@/components/Themed';
 import CourgetteRegular from '@/assets/fonts/Courgette-Regular.ttf';
@@ -15,27 +15,27 @@ export default function TelaAutenticacao() {
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
 
-    const handleLogin = async () => {  
+    const handleLogin = async () => {
         // Use the imported auth object here:
-        if (isUserAuthenticated()){
+        if (isUserAuthenticated()) {
             Alert.alert("Aviso", "Não você não pode realizar esta ação");
             alert("Não você não pode realizar esta ação");
             // navegar para a tela inicial: router.navigate("../index");
         } else {
-        try {
-            
-          const response = await signInWithEmailAndPassword(auth, username, password);
-          Alert.alert('Login de' + username + 'realizado com sucesso!');
-          alert('Login de' + username + 'realizado com sucesso!');
-          router.push("../App");
-        } catch (error : any) {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            Alert.alert(errorCode, errorMessage);
-        }}
-      };
+            try {
+
+                const response = await signInWithEmailAndPassword(auth, username, password);
+                Alert.alert('Login de' + username + 'realizado com sucesso!');
+                router.push("/index");
+            } catch (error: any) {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                Alert.alert(errorCode, errorMessage);
+            }
+        }
+    };
     const [fontsLoaded] = useFonts({
-        'Courgette': CourgetteRegular, 
+        'Courgette': CourgetteRegular,
         'Roboto': RobotoRegular,
         'RobotoMedium': RobotoMedium,
     });
@@ -67,14 +67,14 @@ export default function TelaAutenticacao() {
 
             <View style={styles.socialLogin}>
 
-                <SharedButton 
-                    title="ENTRAR COM FACEBOOK" 
-                    style={styles.facebookButton} 
+                <SharedButton
+                    title="ENTRAR COM FACEBOOK"
+                    style={styles.facebookButton}
                     textStyle={styles.facebookText}
                 />
-                <SharedButton 
-                    title="ENTRAR COM GOOGLE" 
-                    style={styles.googleButton} 
+                <SharedButton
+                    title="ENTRAR COM GOOGLE"
+                    style={styles.googleButton}
                     textStyle={styles.googleText}
                 />
 
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
     },
-    inputContainer:{
+    inputContainer: {
         paddingTop: 64,
         paddingBottom: 52,
         width: '100%',
