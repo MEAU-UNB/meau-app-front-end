@@ -8,6 +8,8 @@ import TelaCadastroUsuarioScreen from '../app/(tabs)/telaCadastroUsuario';
 import TelaCadastroAnimalScreen from '../app/(tabs)/telaCadastroAnimal';
 import TelaDetalheAnimalScreen from '../app/(tabs)/telaDetalheAnimal';
 import TelaListaAnimalScreen from '../app/(tabs)/telaListaAnimal';
+import TelaInteressadoAnimalScreen from '../app/(tabs)/telaInteressadoAnimal';
+
 
 const Drawer = createDrawerNavigator();
 
@@ -68,6 +70,14 @@ function MyDrawer() {
         options={{
           drawerLabel: 'Lista de Animais',
           title: 'Adotar',
+        }}
+      />
+      <Drawer.Screen
+        name="(tabs)/telaInteressadoAnimal"
+        component={TelaInteressadoAnimalScreen}
+        options={{
+          drawerLabel: 'Interessados',
+          title: 'Meus Pets',
         }}
       />
     </Drawer.Navigator>
