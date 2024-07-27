@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, ScrollView, Dimensions, Image, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import getAllAnimals from '../../firebaseService/AnimalService';
 
 const images = [
   "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png",
@@ -17,8 +18,22 @@ const getRandomDogName = () => {
 
 const TelaListaAnimal = () => {
   const [liked, setLiked] = useState(images.map(() => false));
+  const [animals, setAnimals] = useState([]);
   const [names] = useState(images.map(() => getRandomDogName()));
 
+  useEffect(() => {
+    const fetchAnimals = async () => {
+      try {
+        const animalList = await getAllAnimals.fetchAnimals();
+        setAnimals(animalList);
+        setLiked(animalList.map(() => false)); // Initialize liked state
+      } catch (error) {
+        console.error('Error fetching animals:', error);
+      }
+    };
+
+    fetchAnimals();
+  }, []);
   const toggleLike = (index: number) => {
     setLiked((prevLiked) => {
       const newLiked = [...prevLiked];
@@ -29,8 +44,8 @@ const TelaListaAnimal = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {images.map((image, index) => (
-        <View key={index} style={styles.rectangle}>
+      {animals.map((animal, index) => (
+        <View key={animal.id} style={styles.rectangle}>
           <View style={styles.topPart}>
             <Text style={styles.dogName}>{names[index]}</Text>
             <TouchableOpacity onPress={() => toggleLike(index)}>
