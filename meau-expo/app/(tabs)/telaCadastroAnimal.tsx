@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SharedButton from '@/components/SharedButton';
 import { db } from '../../firebaseConfig';
+import { Animal, HealthConditions, Temperament, Demands } from '@/firebaseService/AnimalService';
 import { collection, addDoc } from "firebase/firestore";
 import { getCurrentUser } from '@/firebaseService/AuthService';
 import { router } from 'expo-router';
@@ -45,31 +46,6 @@ type CheckboxState = {
   pequeno: boolean;
 };
 
-interface HealthConditions {
-  castrado: boolean;
-  doente: boolean;
-  vermifugado: boolean;
-  vacinado: boolean;
-}
-
-interface Temperament {
-  calmo: boolean;
-  timido: boolean;
-  brincalhao: boolean;
-  guardiao: boolean;
-  amoroso: boolean;
-  preguicoso: boolean;
-}
-
-interface Demands {
-  termoAdocao: boolean;
-  fotosCasa: boolean;
-  visitaPrevia: boolean;
-  acompanhamentoPos: boolean;
-  umMes: boolean;
-  tresMeses: boolean;
-  seisMeses: boolean;
-}
 
 const App: React.FC = () => {
   const [animalName, setAnimalName] = useState('');
@@ -167,7 +143,7 @@ const App: React.FC = () => {
       seisMeses: checkboxes.seisMeses,
     };
 
-    const animalData = {
+    const animalData: Animal = {
       userId: getCurrentUser().uid,
       doencaDoAnimal: doenca,
       animalName: animalName,
@@ -253,19 +229,19 @@ const App: React.FC = () => {
   });
 
   const pickImage = async () => {
-    let result = await  ImagePicker.launchImageLibraryAsync({
-        mediaTypes:await ImagePicker.MediaTypeOptions.All,
-        allowsEditing:true,
-        aspect:[4,3],
-        quality:0.5
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: await ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5
     })
 
     if (!result.canceled) {
-        const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
+      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
 
-        setImage(base64);
+      setImage(base64);
     }
-};
+  };
 
   if (!fontsLoaded) {
     return <Text>Carregando fontes...</Text>;

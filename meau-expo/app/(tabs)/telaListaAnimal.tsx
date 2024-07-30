@@ -1,30 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ScrollView, Dimensions, Image, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import getAllAnimals from '../../firebaseService/AnimalService';
-
-const images = [
-  "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png",
-  "https://cdn.pixabay.com/photo/2016/07/15/15/55/dachshund-1519374_1280.jpg",
-  "https://cdn.pixabay.com/photo/2016/02/18/18/37/puppy-1207816_1280.jpg"
-];
-
-const dogNames = ["Buddy", "Max", "Charlie", "Bella", "Lucy", "Molly", "Daisy", "Bailey", "Maggie", "Sophie"];
-
-const getRandomDogName = () => {
-  const index = Math.floor(Math.random() * dogNames.length);
-  return dogNames[index];
-};
+import { ScrollView, View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { AnimalService, AnimalFetch } from '../../firebaseService/AnimalService'; // Import the AnimalService
+import { router } from 'expo-router';
 
 const TelaListaAnimal = () => {
-  const [liked, setLiked] = useState(images.map(() => false));
-  const [animals, setAnimals] = useState([]);
-  const [names] = useState(images.map(() => getRandomDogName()));
+  // Define the Animal type
+
+  const [animals, setAnimals] = useState<AnimalFetch[]>([]);
+  const [liked, setLiked] = useState<boolean[]>([]);
+
 
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const animalList = await getAllAnimals.fetchAnimals();
+        const animalList = await AnimalService.fetchAnimals();
+
         setAnimals(animalList);
         setLiked(animalList.map(() => false)); // Initialize liked state
       } catch (error) {
@@ -34,6 +25,7 @@ const TelaListaAnimal = () => {
 
     fetchAnimals();
   }, []);
+
   const toggleLike = (index: number) => {
     setLiked((prevLiked) => {
       const newLiked = [...prevLiked];
@@ -42,98 +34,87 @@ const TelaListaAnimal = () => {
     });
   };
 
+  const navigateToDetail = (id: string) => {
+
+    router.push({ pathname: 'TelaDetalheAnimal', params: { id } });
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {animals.map((animal, index) => (
-        <View key={animal.id} style={styles.rectangle}>
-          <View style={styles.topPart}>
-            <Text style={styles.dogName}>{names[index]}</Text>
-            <TouchableOpacity onPress={() => toggleLike(index)}>
-              <MaterialIcons
-                name={liked[index] ? "favorite" : "favorite-border"}
-                size={24}
-                color={liked[index] ? "red" : "black"}
-              />
-            </TouchableOpacity>
-          </View>
-          <Image source={{ uri: image }} style={styles.middlePart} />
-          <View style={styles.bottomPart}>
-            <View style={styles.bottomRow}>
-              <Text style={styles.bottomText}>MACHO</Text>
-              <Text style={styles.bottomText}>ADULTO</Text>
-              <Text style={styles.bottomText}>MEDIO</Text>
+      {animals.length > 0 ? (
+        animals.map((animal, index) => (
+          <TouchableOpacity key={animal.id} onPress={() => navigateToDetail(animal.id)}>
+            <View style={styles.topPart}>
+              <Text style={styles.dogName}>{animal.animalName}</Text>
+              <TouchableOpacity onPress={() => toggleLike(index)}>
+                <MaterialIcons
+                  name={liked[index] ? "favorite" : "favorite-border"}
+                  size={24}
+                  color={liked[index] ? "red" : "black"}
+                />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.locationText}>SAMAMBAIA SUL DISTRITO FEDERAL</Text>
-          </View>
-        </View>
-      ))}
+            <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.middlePart} />
+            <View style={styles.bottomPart}>
+              <View style={styles.bottomRow}>
+                <Text style={styles.bottomText}>{animal.sexo.toUpperCase()}</Text>
+                <Text style={styles.bottomText}>{animal.idade.toUpperCase()}</Text>
+                <Text style={styles.bottomText}>{animal.porte.toUpperCase()}</Text>
+              </View>
+              <Text style={styles.locationText}>SAMAMBAIA SUL DISTRITO FEDERAL</Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text>No animals found</Text>
+      )}
     </ScrollView>
-  )
-}
-
+  );
+};
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 20,
+    padding: 16,
   },
   rectangle: {
-    width: 380,
-    height: 275,
-    borderRadius: 10,
-    backgroundColor: '#ccc',
-    margin: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   topPart: {
-    width: 380,
-    height: 32,
-    backgroundColor: '#fee29b',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    padding: 16,
   },
   dogName: {
-    fontFamily: 'Roboto',
-    fontSize: 16,
-    color: '#434343',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   middlePart: {
-    width: 380,
-    height: 183,
-    backgroundColor: '#bbb',
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
   },
   bottomPart: {
-    width: 380,
-    height: 275 - 32 - 183,
-    backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
+    padding: 16,
   },
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 5,
   },
   bottomText: {
-    fontFamily: 'Roboto',
-    fontSize: 12,
-    color: '#434343',
+    fontSize: 14,
+    color: '#555',
   },
   locationText: {
-    fontFamily: 'Roboto',
-    fontSize: 12,
-    color: '#434343',
-    textAlign: 'center',
+    marginTop: 8,
+    fontSize: 14,
+    color: '#888',
   },
 });
 

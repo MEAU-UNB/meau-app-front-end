@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import AdoptButton from "@/components/Button";
 import { isUserAuthenticated } from "@/firebaseService/AuthService";
-import { router } from "expo-router";
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { AnimalService } from '@/firebaseService/AnimalService';
 import { Alert } from "react-native";
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -15,12 +16,36 @@ const images = [
 ];
 
 const TelaDetalheAnimal = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const [animal, setAnimal] = useState<any>(null);
+
+
+  useEffect(() => {
+    const fetchAnimal = async () => {
+      try {
+        const animalData = await AnimalService.fetchAnimalById(params.id as string);
+        setAnimal(animalData);
+      } catch (error) {
+        console.error('Error fetching animal:', error);
+        Alert.alert('Error', 'Failed to fetch animal data');
+      }
+    };
+
+    if (params.id) {
+      fetchAnimal();
+    } else {
+      Alert.alert('Error', 'Animal ID is missing');
+    }
+  }, [params]);
+
+
   return (
     <ScrollView>
       <PagerView style={styles.pagerView} initialPage={0}>
-        {images.map((image, index) => (
+        {animal.map((animal: any, index: number) => (
           <View key={index} style={styles.carouselItem}>
-            <Image source={{ uri: image }} style={styles.carouselImage} />
+            <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.carouselImage} />
             <View style={styles.buttonContainer}>
               <TouchableOpacity onPress={() => console.log('Liked')}>
                 <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
@@ -33,19 +58,19 @@ const TelaDetalheAnimal = () => {
         ))}
       </PagerView>
       <View style={styles.container}>
-        <Text style={styles.title}>Bidu</Text>
+        <Text style={styles.title}>{animal.animalName}</Text>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>SEXO</Text>
-            <Text style={styles.underText}>Macho</Text>
+            <Text style={styles.underText}>{animal.sexo}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>PORTE</Text>
-            <Text style={styles.underText}>Médio</Text>
+            <Text style={styles.underText}>{animal.porte}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>IDADE</Text>
-            <Text style={styles.underText}>Adulto</Text>
+            <Text style={styles.underText}>{animal.idade}</Text>
           </View>
         </View>
         <View style={styles.row}>
@@ -58,42 +83,42 @@ const TelaDetalheAnimal = () => {
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>CASTRADO</Text>
-            <Text style={styles.underText}>Não</Text>
+            <Text style={styles.underText}>{animal.saude.castrado}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>VERMIFUGADO</Text>
-            <Text style={styles.underText}>Sim</Text>
+            <Text style={styles.underText}>{animal.saude.vermifugado}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>VACINADO</Text>
-            <Text style={styles.underText}>Não</Text>
+            <Text style={styles.underText}>{animal.saude.vacinado}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>DOENÇAS</Text>
-            <Text style={styles.underText}>Nenhuma</Text>
+            <Text style={styles.underText}>{animal.saude.doenca}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>TEMPERAMENTO</Text>
-            <Text style={styles.underText}>Calmo e dócil</Text>
+            <Text style={styles.underText}>{animal.temperamento}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>EXIGÊNCIAS DO DOADOR</Text>
-            <Text style={styles.underText}>Termo de doação, fotos da casa, visita prévia e acompanhamento durante 3 meses</Text>
+            <Text style={styles.underText}>{animal.exigencia}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>MAIS SOBRE BIDU</Text>
-            <Text style={styles.underText}>Bidu é um cão muito dócil e de fácil convivência. Adora caminhadas e se dá muito bem com crianças. Tem muito medo de raios e de chuva, nesses momentos ele requer mais atenção. Está disponível para adoção pois eu e minha família o encontramos na rua e não podemos mantê-lo em nossa casa.</Text>
+            <Text style={styles.underText}>{animal.sobre}</Text>
           </View>
         </View>
       </View>
@@ -107,7 +132,7 @@ const TelaDetalheAnimal = () => {
             Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
             alert(" foi autenticado e vai para tela de adotar");
           }
-        }}/> 
+        }} />
       </View>
     </ScrollView>
   )

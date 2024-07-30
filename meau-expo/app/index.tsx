@@ -46,13 +46,12 @@ const App: React.FC = () => {
       <AdoptButton title='ADOTAR' onPress={() => {
         // Check if user is authenticated
         if (!isUserAuthenticated()) {
-          alert("não foi autenticado");
-          router.push("/(tabs)/telaAutenticacao");
-          Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-        } else {
 
-          Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-          alert(" foi autenticado e vai para tela de adotar");
+          Alert.alert("Aviso", "você precisa está autenticado");
+          router.push("/(tabs)/telaAutenticacao");
+        } else {
+          router.push("/(tabs)/telaListaAnimal");
+
         }
       }} />
 
