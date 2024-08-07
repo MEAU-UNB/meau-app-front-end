@@ -1,51 +1,110 @@
-import React from 'react';
-import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import AdoptButton from "@/components/Button";
-import { isUserAuthenticated } from "@/firebaseService/AuthService";
-import { router } from "expo-router";
-import { Alert } from "react-native";
+import { getCurrentUser, isUserAuthenticated } from "@/firebaseService/AuthService";
+import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { AnimalService } from '@/firebaseService/AnimalService';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-const images = [
-  "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png",
-  "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png"
-];
-
 const TelaDetalheAnimal = () => {
+  const router = useRouter();
+  const params = useGlobalSearchParams();
+  const animalId = params.animalId as string;
+  const [animal, setAnimal] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchAnimal = async () => {
+      try {
+        if (typeof animalId === 'string') {
+          const animalData = await AnimalService.fetchAnimalById(animalId);
+          setAnimal(animalData);
+        } else {
+          throw new Error('Invalid ID format');
+        }
+      } catch (error) {
+        console.error('Error fetching animal:', error);
+        Alert.alert('Error', 'Failed to fetch animal data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (animalId) {
+      fetchAnimal();
+    } else {
+      setLoading(false);
+    }
+  }, [animalId]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  if (!animal) {
+    return <Text>No animal data found.</Text>;
+  }
+
+  const temperamentKeys = animal.temperamento ? Object.keys(animal.temperamento).filter(key => animal.temperamento[key]).join(', ') : '';
+
+  const safeRenderText = (text: any) => {
+    return typeof text === 'string' ? text : JSON.stringify(text);
+  };
+
+  const handleAdoptButtonPress = () => {
+    if (!isUserAuthenticated()) {
+      alert("Não foi autenticado");
+      router.push("/(tabs)/telaAutenticacao");
+    } else {
+      if (animal.userId) {
+
+        console.log("IDS: "+ animal.userId + " " + getCurrentUser().uid)
+
+        router.push({
+          pathname: '/(tabs)/telaChat',
+          params: {
+            animalOwner: animal.userId.toString(),
+            animalAdopter: getCurrentUser().uid.toString(), 
+          },
+        })
+      } else {
+        Alert.alert("Error", "Animal does not have a registered user ID");
+      }
+    }
+  };
+
   return (
     <ScrollView>
       <PagerView style={styles.pagerView} initialPage={0}>
-        {images.map((image, index) => (
-          <View key={index} style={styles.carouselItem}>
-            <Image source={{ uri: image }} style={styles.carouselImage} />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={() => console.log('Liked')}>
-                <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => console.log('Shared')}>
-                <MaterialIcons name="share" size={24} color="#fff" style={styles.icon} />
-              </TouchableOpacity>
-            </View>
+        <View style={styles.carouselItem}>
+          <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.carouselImage} />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={() => console.log('Liked')}>
+              <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => console.log('Shared')}>
+              <MaterialIcons name="share" size={24} color="#fff" style={styles.icon} />
+            </TouchableOpacity>
           </View>
-        ))}
+        </View>
       </PagerView>
       <View style={styles.container}>
-        <Text style={styles.title}>Bidu</Text>
+        <Text style={styles.title}>{safeRenderText(animal.animalName)}</Text>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>SEXO</Text>
-            <Text style={styles.underText}>Macho</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.sexo)}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>PORTE</Text>
-            <Text style={styles.underText}>Médio</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.porte)}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>IDADE</Text>
-            <Text style={styles.underText}>Adulto</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.idade)}</Text>
           </View>
         </View>
         <View style={styles.row}>
@@ -58,60 +117,51 @@ const TelaDetalheAnimal = () => {
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>CASTRADO</Text>
-            <Text style={styles.underText}>Não</Text>
+            <Text style={styles.underText}>{animal.saude.castrado ? "Sim" : "Não"}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>VERMIFUGADO</Text>
-            <Text style={styles.underText}>Sim</Text>
+            <Text style={styles.underText}>{animal.saude.vermifugado ? "Sim" : "Não"}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>VACINADO</Text>
-            <Text style={styles.underText}>Não</Text>
+            <Text style={styles.underText}>{animal.saude.vacinado ? "Sim" : "Não"}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>DOENÇAS</Text>
-            <Text style={styles.underText}>Nenhuma</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.saude.doenca)}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>TEMPERAMENTO</Text>
-            <Text style={styles.underText}>Calmo e dócil</Text>
+            <Text style={styles.underText}>{temperamentKeys}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>EXIGÊNCIAS DO DOADOR</Text>
-            <Text style={styles.underText}>Termo de doação, fotos da casa, visita prévia e acompanhamento durante 3 meses</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.exigencia)}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>MAIS SOBRE BIDU</Text>
-            <Text style={styles.underText}>Bidu é um cão muito dócil e de fácil convivência. Adora caminhadas e se dá muito bem com crianças. Tem muito medo de raios e de chuva, nesses momentos ele requer mais atenção. Está disponível para adoção pois eu e minha família o encontramos na rua e não podemos mantê-lo em nossa casa.</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.sobre)}</Text>
           </View>
         </View>
       </View>
       <View style={styles.container}>
-        <AdoptButton title='Pretendo Adotar' onPress={() => {
-          if (!isUserAuthenticated()) {
-            alert("não foi autenticado");
-            router.push("/(tabs)/telaAutenticacao");
-            Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-          } else {
-            Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-            alert(" foi autenticado e vai para tela de adotar");
-          }
-        }}/> 
+        <AdoptButton title='Pretendo Adotar' onPress={handleAdoptButtonPress} />
       </View>
     </ScrollView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   title: {
