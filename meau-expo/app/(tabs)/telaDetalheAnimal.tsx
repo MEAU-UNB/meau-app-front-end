@@ -1,76 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import AdoptButton from "@/components/Button";
 import { isUserAuthenticated } from "@/firebaseService/AuthService";
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { AnimalService } from '@/firebaseService/AnimalService';
-import { Alert } from "react-native";
 import { MaterialIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-const images = [
-  "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png",
-  "https://wildwoodvetclinic.com/wp-content/uploads/2020/08/WVC-newsletter-graphics-aug2020-BLOG.png"
-];
-
 const TelaDetalheAnimal = () => {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const params = useGlobalSearchParams();
+  const animalId = params.animalId as string;
   const [animal, setAnimal] = useState<any>(null);
-
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const animalData = await AnimalService.fetchAnimalById(params.id as string);
-        setAnimal(animalData);
+        if (typeof animalId === 'string') {
+          const animalData = await AnimalService.fetchAnimalById(animalId);
+          setAnimal(animalData);
+        } else {
+          throw new Error('Invalid ID format');
+        }
       } catch (error) {
         console.error('Error fetching animal:', error);
         Alert.alert('Error', 'Failed to fetch animal data');
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (params.id) {
+    if (animalId) {
       fetchAnimal();
     } else {
-      Alert.alert('Error', 'Animal ID is missing');
+      // Alert.alert('Error', 'Animal ID is missing');
+      setLoading(false);
     }
-  }, [params]);
+  }, [animalId]);
 
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  if (!animal) {
+    return <Text>No animal data found.</Text>;
+  }
+
+  const temperamentKeys = animal.temperamento ? Object.keys(animal.temperamento).filter(key => animal.temperamento[key]).join(', ') : '';
+
+  const safeRenderText = (text: any) => {
+    return typeof text === 'string' ? text : JSON.stringify(text);
+  };
 
   return (
     <ScrollView>
       <PagerView style={styles.pagerView} initialPage={0}>
-        {animal.map((animal: any, index: number) => (
-          <View key={index} style={styles.carouselItem}>
-            <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.carouselImage} />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={() => console.log('Liked')}>
-                <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => console.log('Shared')}>
-                <MaterialIcons name="share" size={24} color="#fff" style={styles.icon} />
-              </TouchableOpacity>
-            </View>
+        <View style={styles.carouselItem}>
+          <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.carouselImage} />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={() => console.log('Liked')}>
+              <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => console.log('Shared')}>
+              <MaterialIcons name="share" size={24} color="#fff" style={styles.icon} />
+            </TouchableOpacity>
           </View>
-        ))}
+        </View>
       </PagerView>
       <View style={styles.container}>
-        <Text style={styles.title}>{animal.animalName}</Text>
+        <Text style={styles.title}>{safeRenderText(animal.animalName)}</Text>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>SEXO</Text>
-            <Text style={styles.underText}>{animal.sexo}</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.sexo)}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>PORTE</Text>
-            <Text style={styles.underText}>{animal.porte}</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.porte)}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>IDADE</Text>
-            <Text style={styles.underText}>{animal.idade}</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.idade)}</Text>
           </View>
         </View>
         <View style={styles.row}>
@@ -83,60 +96,60 @@ const TelaDetalheAnimal = () => {
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>CASTRADO</Text>
-            <Text style={styles.underText}>{animal.saude.castrado}</Text>
+            <Text style={styles.underText}>{animal.saude.castrado ? "Sim" : "Não"}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>VERMIFUGADO</Text>
-            <Text style={styles.underText}>{animal.saude.vermifugado}</Text>
+            <Text style={styles.underText}>{animal.saude.vermifugado ? "Sim" : "Não"}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>VACINADO</Text>
-            <Text style={styles.underText}>{animal.saude.vacinado}</Text>
+            <Text style={styles.underText}>{animal.saude.vacinado ? "Sim" : "Não"}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>DOENÇAS</Text>
-            <Text style={styles.underText}>{animal.saude.doenca}</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.saude.doenca)}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>TEMPERAMENTO</Text>
-            <Text style={styles.underText}>{animal.temperamento}</Text>
+            <Text style={styles.underText}>{temperamentKeys}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>EXIGÊNCIAS DO DOADOR</Text>
-            <Text style={styles.underText}>{animal.exigencia}</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.exigencia)}</Text>
           </View>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.columnText}>MAIS SOBRE BIDU</Text>
-            <Text style={styles.underText}>{animal.sobre}</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.sobre)}</Text>
           </View>
         </View>
       </View>
       <View style={styles.container}>
         <AdoptButton title='Pretendo Adotar' onPress={() => {
           if (!isUserAuthenticated()) {
-            alert("não foi autenticado");
+            alert("Não foi autenticado");
             router.push("/(tabs)/telaAutenticacao");
             Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
           } else {
             Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-            alert(" foi autenticado e vai para tela de adotar");
+            alert("Foi autenticado e vai para tela de adotar");
           }
         }} />
       </View>
     </ScrollView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   title: {
