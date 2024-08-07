@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import AdoptButton from "@/components/Button";
-import { isUserAuthenticated } from "@/firebaseService/AuthService";
+import { getCurrentUser, isUserAuthenticated } from "@/firebaseService/AuthService";
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { AnimalService } from '@/firebaseService/AnimalService';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -36,7 +36,6 @@ const TelaDetalheAnimal = () => {
     if (animalId) {
       fetchAnimal();
     } else {
-      // Alert.alert('Error', 'Animal ID is missing');
       setLoading(false);
     }
   }, [animalId]);
@@ -53,6 +52,28 @@ const TelaDetalheAnimal = () => {
 
   const safeRenderText = (text: any) => {
     return typeof text === 'string' ? text : JSON.stringify(text);
+  };
+
+  const handleAdoptButtonPress = () => {
+    if (!isUserAuthenticated()) {
+      alert("Não foi autenticado");
+      router.push("/(tabs)/telaAutenticacao");
+    } else {
+      if (animal.userId) {
+
+        console.log("IDS: "+ animal.userId + " " + getCurrentUser().uid)
+
+        router.push({
+          pathname: '/(tabs)/telaChat',
+          params: {
+            animalOwner: animal.userId.toString(),
+            animalAdopter: getCurrentUser().uid.toString(), 
+          },
+        })
+      } else {
+        Alert.alert("Error", "Animal does not have a registered user ID");
+      }
+    }
   };
 
   return (
@@ -136,16 +157,7 @@ const TelaDetalheAnimal = () => {
         </View>
       </View>
       <View style={styles.container}>
-        <AdoptButton title='Pretendo Adotar' onPress={() => {
-          if (!isUserAuthenticated()) {
-            alert("Não foi autenticado");
-            router.push("/(tabs)/telaAutenticacao");
-            Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-          } else {
-            Alert.alert("Aviso", "TODO: Adicionar tela de perfil");
-            alert("Foi autenticado e vai para tela de adotar");
-          }
-        }} />
+        <AdoptButton title='Pretendo Adotar' onPress={handleAdoptButtonPress} />
       </View>
     </ScrollView>
   );
