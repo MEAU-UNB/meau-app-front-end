@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
-import { db } from '../../firebaseConfig'; // Adjust the import path as needed
+import { db } from '../../firebaseConfig';
 import { collection, query, orderBy, onSnapshot, Timestamp, doc, writeBatch } from 'firebase/firestore';
-import { useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
+import { useGlobalSearchParams } from 'expo-router';
 
 interface ChatMessage {
   _id: string;
@@ -20,15 +20,11 @@ const ChatScreen = () => {
   const ownerId = params.animalOwner as string;
   const adopterId = params.animalAdopter as string;
 
-
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    console.log('Received newMessages:', JSON.stringify(params, null, 2));
-    console.log("params: " + params);
-    console.log("IDS AFTER: " + adopterId + " " + ownerId)
-    if (!adopterId || !ownerId){
-      console.log("error")
+    if (!adopterId || !ownerId) {
+      console.log("Error: Invalid IDs");
       return;
     }
 
@@ -36,10 +32,9 @@ const ChatScreen = () => {
     const q = query(messagesRef, orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const messages = querySnapshot.docs
+      const filteredMessages = querySnapshot.docs
         .filter((doc) => {
           const data = doc.data();
-          console.log("data: " + "adopter:" + adopterId + "recipient" + data.recipientId + "owner" + ownerId);
           return (
             (data.userId === adopterId && data.recipientId === ownerId) ||
             (data.userId === ownerId && data.recipientId === adopterId)
@@ -57,7 +52,7 @@ const ChatScreen = () => {
             },
           };
         }) as ChatMessage[];
-      setMessages(messages);
+      setMessages(filteredMessages);
     });
 
     return () => unsubscribe();
@@ -90,7 +85,7 @@ const ChatScreen = () => {
         messages={messages}
         onSend={handleSend}
         user={{
-          _id: adopterId as string, 
+          _id: adopterId,
           name: 'Adopter Name',
         }}
       />
