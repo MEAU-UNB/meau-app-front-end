@@ -23,7 +23,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.gabrielbf.meauapp"
+      "package": "com.gabrielbf.meauapp",
+      "googleServicesFile": "google-services.json"
     },
     "web": {
       "bundler": "metro",
