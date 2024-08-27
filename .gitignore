@@ -1,2 +1,4 @@
 meau-expo/package-lock.json
 google-services.json
+# ignores all .env files
+.env*

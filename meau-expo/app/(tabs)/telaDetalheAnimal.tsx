@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import AdoptButton from "@/components/Button";
 import { getCurrentUser, isUserAuthenticated } from "@/firebaseService/AuthService";
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { AnimalService } from '@/firebaseService/AnimalService';
 import { MaterialIcons } from '@expo/vector-icons';
+
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from 'expo-constants';
 
 const { width } = Dimensions.get('window');
 
@@ -15,6 +19,82 @@ const TelaDetalheAnimal = () => {
   const animalId = params.animalId as string;
   const [animal, setAnimal] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [expoPushToken, setExpoPushToken] = useState<string>("");
+
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => {
+      if (token) {
+        console.log("token: ", token);
+        setExpoPushToken(token.data); // Only set if the token is defined
+      }
+      else {
+        console.log("No token received");
+      }
+    })
+      .catch((err) => console.log(err));
+  }, []);
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      });
+    }
+
+    if (Device.isDevice) {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        alert("Failed to get push token for push notification!");
+        return;
+      }
+      // Learn more about projectId:
+      // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
+      token = await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig?.extra?.eas.projectId,
+      });
+      console.log(token);
+    } else {
+      alert("Must use physical device for Push Notifications");
+    }
+
+    return token;
+  }
+
+  async function sendPushNotification() {
+    const message = {
+      to: expoPushToken,
+      sound: 'default',
+      title: 'Liked!',
+      body: 'You just liked an image.',
+      data: { someData: 'goes here' },
+    };
+
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+  }
+
+  const handleLikePress = () => {
+    console.log('Liked');
+    sendPushNotification();
+  };
 
   useEffect(() => {
     const fetchAnimal = async () => {
@@ -61,13 +141,13 @@ const TelaDetalheAnimal = () => {
     } else {
       if (animal.userId) {
 
-        console.log("IDS: "+ animal.userId + " " + getCurrentUser().uid)
+        console.log("IDS: " + animal.userId + " " + getCurrentUser().uid)
 
         router.push({
           pathname: '/(tabs)/telaChat',
           params: {
             animalOwner: animal.userId.toString(),
-            animalAdopter: getCurrentUser().uid.toString(), 
+            animalAdopter: getCurrentUser().uid.toString(),
           },
         })
       } else {
@@ -82,7 +162,7 @@ const TelaDetalheAnimal = () => {
         <View style={styles.carouselItem}>
           <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.carouselImage} />
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={() => console.log('Liked')}>
+            <TouchableOpacity onPress={handleLikePress}>
               <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('Shared')}>
