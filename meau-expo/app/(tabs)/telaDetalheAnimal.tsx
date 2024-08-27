@@ -10,6 +10,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from 'expo-constants';
+import { collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebaseConfig';
 
 const { width } = Dimensions.get('window');
 
@@ -21,23 +23,44 @@ const TelaDetalheAnimal = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [expoPushToken, setExpoPushToken] = useState<string>("");
 
-
   useEffect(() => {
-    registerForPushNotificationsAsync().then(token => {
-      if (token) {
-        console.log("token: ", token);
-        setExpoPushToken(token.data); // Only set if the token is defined
+    const configureNotifications = async () => {
+      // Configure notification handling
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+
+      // Request permissions and get push token
+      if (Device.isDevice) {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== 'granted') {
+          Alert.alert('Failed to get push token for push notification!');
+          return;
+        }
+
+        const token = await Notifications.getExpoPushTokenAsync();
+        console.log('Push token:', token);
+        // Store the token if needed
+      } else {
+        Alert.alert('Must use a physical device for Push Notifications');
       }
-      else {
-        console.log("No token received");
-      }
-    })
-      .catch((err) => console.log(err));
+    };
+
+    configureNotifications();
   }, []);
 
   async function registerForPushNotificationsAsync() {
     let token;
-
+    
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "default",
@@ -46,10 +69,9 @@ const TelaDetalheAnimal = () => {
         lightColor: "#FF231F7C",
       });
     }
-
+  
     if (Device.isDevice) {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== "granted") {
         const { status } = await Notifications.requestPermissionsAsync();
@@ -59,41 +81,114 @@ const TelaDetalheAnimal = () => {
         alert("Failed to get push token for push notification!");
         return;
       }
-      // Learn more about projectId:
-      // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
+  
+      console.log(Constants.expoConfig?.extra?.eas.projectId)
+      // Fetch a new token
       token = await Notifications.getExpoPushTokenAsync({
         projectId: Constants.expoConfig?.extra?.eas.projectId,
       });
-      console.log(token);
+  
+      console.log('New token:', token);
+  
+      // Ensure the token is not null or undefined
+      if (token?.data) {
+        try {
+          const currentUser = getCurrentUser();
+          if (currentUser) {
+            const userRef = doc(db, 'users', currentUser.uid);
+  
+            // Update Firestore with the new token
+            await updateDoc(userRef, {
+              pushToken: token.data,
+            });
+  
+            console.log('Push token saved to Firestore');
+          } else {
+            console.log('No user is logged in');
+          }
+        } catch (error) {
+          console.error('Error saving push token to Firestore:', error);
+        }
+      }
     } else {
-      alert("Must use physical device for Push Notifications");
+      alert("Must use a physical device for Push Notifications");
     }
-
+  
     return token;
   }
 
-  async function sendPushNotification() {
-    const message = {
-      to: expoPushToken,
-      sound: 'default',
-      title: 'Liked!',
-      body: 'You just liked an image.',
-      data: { someData: 'goes here' },
-    };
+  async function fetchOwnerData(ownerId: string) {
+    try {
+      const ownerRef = collection(db, 'users');
+      const ownerDoc = doc(ownerRef, ownerId);
+      const ownerSnapshot = await getDoc(ownerDoc);
 
-    await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(message),
-    });
+      if (ownerSnapshot.exists()) {
+        return ownerSnapshot.data();
+      } else {
+        console.log("No such document!");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching owner data:", error);
+      return null;
+    }
   }
 
-  const handleLikePress = () => {
+  async function sendPushNotificationToOwner(ownerPushToken: string) {
+    const message = {
+      to: ownerPushToken,
+      sound: 'default',
+      title: 'Animal Liked!',
+      body: `Someone liked your animal.`,
+      data: { animalId },
+    };
+
+    const { status } = await Notifications.getPermissionsAsync();
+    console.log(status)
+    if (status !== 'granted') {
+      const { status: newStatus } = await Notifications.requestPermissionsAsync();
+      if (newStatus !== 'granted') {
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+    }
+  
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(message),
+      });
+  
+      const responseData = await response.json();
+      console.log('Notification response:', responseData);
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+    }
+  }
+
+  const handleLikePress = async () => {
     console.log('Liked');
-    sendPushNotification();
+
+    try {
+      const ownerData = await fetchOwnerData(animal.userId.toString()); // Fetch owner's data from Firestore
+      console.log(JSON.stringify(ownerData, null, 2));
+      if(ownerData) {
+        console.log("pushtoken = " + ownerData.pushToken)
+      }
+      if (ownerData && ownerData.pushToken) {
+        console.log("here")
+        await sendPushNotificationToOwner(ownerData.pushToken);
+      } else {
+        console.log("Owner does not have a push token or data not found");
+      }
+    } catch (error) {
+      console.error("Error fetching owner data:", error);
+    }
   };
 
   useEffect(() => {
@@ -211,7 +306,13 @@ const TelaDetalheAnimal = () => {
           </View>
           <View style={styles.column}>
             <Text style={styles.columnText}>DOENÇAS</Text>
-            <Text style={styles.underText}>{safeRenderText(animal.saude.doenca)}</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.saude.doencas)}</Text>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <View style={styles.column}>
+            <Text style={styles.columnText}>DEFICIÊNCIA</Text>
+            <Text style={styles.underText}>{safeRenderText(animal.saude.deficiencia)}</Text>
           </View>
         </View>
         <View style={styles.separator} />
@@ -221,99 +322,27 @@ const TelaDetalheAnimal = () => {
             <Text style={styles.underText}>{temperamentKeys}</Text>
           </View>
         </View>
-        <View style={styles.separator} />
-        <View style={styles.row}>
-          <View style={styles.column}>
-            <Text style={styles.columnText}>EXIGÊNCIAS DO DOADOR</Text>
-            <Text style={styles.underText}>{safeRenderText(animal.exigencia)}</Text>
-          </View>
-        </View>
-        <View style={styles.separator} />
-        <View style={styles.row}>
-          <View style={styles.column}>
-            <Text style={styles.columnText}>MAIS SOBRE BIDU</Text>
-            <Text style={styles.underText}>{safeRenderText(animal.sobre)}</Text>
-          </View>
-        </View>
       </View>
-      <View style={styles.container}>
-        <AdoptButton title='Pretendo Adotar' onPress={handleAdoptButtonPress} />
+      <View style={{ flexDirection: "row", justifyContent: "center" }}>
+        <AdoptButton title="Pretendo Adotar" onPress={handleAdoptButtonPress} />
       </View>
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  title: {
-    paddingTop: 5,
-    paddingBottom: 5,
-    fontWeight: 'bold',
-    fontSize: 22,
-    alignItems: 'flex-start',
-    width: '100%',
-    left: 15,
-    flex: 1,
-    fontFamily: 'Roboto',
-    color: '#434343'
-  },
-  container: {
-    top: 0,
-    left: 0,
-    backgroundColor: '#fafafa',
-    marginRight: 3,
-    marginLeft: 3,
-    alignItems: 'center',
-    flex: 10,
-  },
-  containertext: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  row: {
-    paddingTop: 8,
-    paddingBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-  column: {
-    left: 15,
-    flex: 1,
-    alignItems: 'flex-start',
-    flexWrap: 'wrap'
-  },
-  columnText: {
-    fontSize: 12,
-    color: '#f7a800',
-    fontFamily: 'Roboto',
-  },
-  underText: {
-    fontSize: 14,
-    color: '#757575',
-    marginTop: 4,
-    fontFamily: 'Roboto',
-  },
-  separator: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#d3d3d3',
-    marginTop: 8,
-  },
   pagerView: {
-    width: width,
-    height: 184,
+    width: '100%',
+    height: width,
   },
   carouselItem: {
-    width: '100%',
-    height: 184,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   carouselImage: {
     width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    height: width,
   },
   buttonContainer: {
     position: 'absolute',
@@ -322,8 +351,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   icon: {
-    marginLeft: 10,
-  }
+    marginHorizontal: 5,
+  },
+  container: {
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  column: {
+    flex: 1,
+  },
+  columnText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  underText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  separator: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginVertical: 15,
+  },
 });
 
 export default TelaDetalheAnimal;
