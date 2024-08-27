@@ -21,46 +21,34 @@ const TelaDetalheAnimal = () => {
   const animalId = params.animalId as string;
   const [animal, setAnimal] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+
   const [expoPushToken, setExpoPushToken] = useState<string>("");
 
   useEffect(() => {
-    const configureNotifications = async () => {
-      // Configure notification handling
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: false,
-        }),
-      });
-
-      // Request permissions and get push token
-      if (Device.isDevice) {
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
-        if (existingStatus !== 'granted') {
-          const { status } = await Notifications.requestPermissionsAsync();
-          finalStatus = status;
+    registerForPushNotificationsAsync()
+      .then((token) => {
+        if (token) {
+          console.log("token: ", token);
+          setExpoPushToken(token.data); // Only set if the token is defined
         }
-        if (finalStatus !== 'granted') {
-          Alert.alert('Failed to get push token for push notification!');
-          return;
+        else {
+          console.log("No token received");
         }
-
-        const token = await Notifications.getExpoPushTokenAsync();
-        console.log('Push token:', token);
-        // Store the token if needed
-      } else {
-        Alert.alert('Must use a physical device for Push Notifications');
-      }
-    };
-
-    configureNotifications();
+      })
+      .catch((err) => console.log(err));
   }, []);
 
   async function registerForPushNotificationsAsync() {
     let token;
-    
+
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "default",
@@ -69,7 +57,7 @@ const TelaDetalheAnimal = () => {
         lightColor: "#FF231F7C",
       });
     }
-  
+
     if (Device.isDevice) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
@@ -81,27 +69,27 @@ const TelaDetalheAnimal = () => {
         alert("Failed to get push token for push notification!");
         return;
       }
-  
+
       console.log(Constants.expoConfig?.extra?.eas.projectId)
       // Fetch a new token
       token = await Notifications.getExpoPushTokenAsync({
         projectId: Constants.expoConfig?.extra?.eas.projectId,
       });
-  
+
       console.log('New token:', token);
-  
+
       // Ensure the token is not null or undefined
       if (token?.data) {
         try {
           const currentUser = getCurrentUser();
           if (currentUser) {
             const userRef = doc(db, 'users', currentUser.uid);
-  
+
             // Update Firestore with the new token
             await updateDoc(userRef, {
               pushToken: token.data,
             });
-  
+
             console.log('Push token saved to Firestore');
           } else {
             console.log('No user is logged in');
@@ -113,7 +101,7 @@ const TelaDetalheAnimal = () => {
     } else {
       alert("Must use a physical device for Push Notifications");
     }
-  
+
     return token;
   }
 
@@ -153,7 +141,7 @@ const TelaDetalheAnimal = () => {
         return;
       }
     }
-  
+
     try {
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
@@ -163,7 +151,7 @@ const TelaDetalheAnimal = () => {
         },
         body: JSON.stringify(message),
       });
-  
+
       const responseData = await response.json();
       console.log('Notification response:', responseData);
     } catch (error) {
@@ -177,12 +165,12 @@ const TelaDetalheAnimal = () => {
     try {
       const ownerData = await fetchOwnerData(animal.userId.toString()); // Fetch owner's data from Firestore
       console.log(JSON.stringify(ownerData, null, 2));
-      if(ownerData) {
+      if (ownerData) {
         console.log("pushtoken = " + ownerData.pushToken)
       }
       if (ownerData && ownerData.pushToken) {
         console.log("here")
-        await sendPushNotificationToOwner(ownerData.pushToken);
+        await sendPushNotificationToOwner(expoPushToken);
       } else {
         console.log("Owner does not have a push token or data not found");
       }
