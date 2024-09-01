@@ -25,7 +25,7 @@ export default ({ config
       backgroundColor: "#ffffff"
     },
     package: "com.gabrielbf.meauapp",
-    googleServicesFile: process.env.google_services_file
+    googleServicesFile: process.env.GOOGLE_SERVICES_FILE
   },
   web: {
     bundler: "metro",

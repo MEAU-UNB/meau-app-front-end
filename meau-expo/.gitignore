@@ -39,4 +39,5 @@ yarn-error.*
 
 expo-env.d.ts
 google-service.json
+android
 # @end expo-cli

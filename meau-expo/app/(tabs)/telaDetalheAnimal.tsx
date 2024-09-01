@@ -239,13 +239,17 @@ const TelaDetalheAnimal = () => {
     }
   };
 
+  const printLiked = async () => {
+    console.log('Liked');
+  }
+
   return (
     <ScrollView>
       <PagerView style={styles.pagerView} initialPage={0}>
         <View style={styles.carouselItem}>
           <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.carouselImage} />
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleLikePress}>
+            <TouchableOpacity onPress={handleLikePress}>//printLiked
               <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('Shared')}>
