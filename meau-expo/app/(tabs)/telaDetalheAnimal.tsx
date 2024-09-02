@@ -163,7 +163,7 @@ const TelaDetalheAnimal = () => {
     console.log('Liked');
 
     try {
-      const ownerData = await fetchOwnerData(animal.userId.toString()); // Fetch owner's data from Firestore
+      const ownerData = await fetchOwnerData(animal.userId.toString());
       console.log(JSON.stringify(ownerData, null, 2));
       if (ownerData) {
         console.log("pushtoken = " + ownerData.pushToken)
@@ -249,7 +249,7 @@ const TelaDetalheAnimal = () => {
         <View style={styles.carouselItem}>
           <Image source={{ uri: `data:image/png;base64,${animal.image}` }} style={styles.carouselImage} />
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleLikePress}>//printLiked
+            <TouchableOpacity onPress={handleLikePress}>
               <MaterialIcons name="favorite-border" size={24} color="#fff" style={styles.icon} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('Shared')}>
