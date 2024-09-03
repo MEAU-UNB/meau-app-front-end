@@ -11,10 +11,6 @@ import { isUserAuthenticated } from '@/firebaseService/AuthService';
 
 
 const Meau_marca_2 = require('@/assets/images/Meau_marca_2.png');
-
-
-
-
 const App: React.FC = () => {
   const [fontsLoaded] = useFonts({
     'Courgette': CourgetteRegular,

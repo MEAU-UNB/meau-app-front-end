@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
 import { db } from '../../firebaseConfig';
-import { collection, query, orderBy, onSnapshot, Timestamp, doc, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, Timestamp, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { useGlobalSearchParams } from 'expo-router';
+import * as Notifications from "expo-notifications";
 
 interface ChatMessage {
   _id: string;
@@ -58,19 +59,62 @@ const ChatScreen = () => {
     return () => unsubscribe();
   }, [adopterId, ownerId]);
 
+  const fetchRecipientPushToken = async (recipientId: string) => {
+    const userRef = doc(db, 'users', recipientId);
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      return userData?.pushToken || null;
+    }
+    return null;
+  };
+
+  const sendPushNotification = async (recipientPushToken: string, messageText: string) => {
+    const message = {
+      to: recipientPushToken,
+      sound: 'default',
+      title: 'New Message!',
+      body: messageText,
+      data: { ownerId, adopterId },
+    };
+
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(message),
+      });
+
+      const responseData = await response.json();
+      console.log('Notification response:', responseData);
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+    }
+  };
+
   const handleSend = async (newMessages: IMessage[] = []) => {
     const batch = writeBatch(db);
 
-    newMessages.forEach((message) => {
+    for (const message of newMessages) {
       const messageRef = doc(collection(db, 'chatMessages'));
       batch.set(messageRef, {
         text: message.text,
         createdAt: Timestamp.fromDate(new Date()),
         userId: adopterId,
-        userName: 'Adopter Name',
+        userName: 'Adopter Name', // Replace with actual user name
         recipientId: ownerId,
       });
-    });
+
+      // Fetch the recipient's push token
+      const recipientPushToken = await fetchRecipientPushToken(ownerId);
+      if (recipientPushToken) {
+        // Send the push notification
+        await sendPushNotification(recipientPushToken, message.text);
+      }
+    }
 
     try {
       await batch.commit();
@@ -86,7 +130,7 @@ const ChatScreen = () => {
         onSend={handleSend}
         user={{
           _id: adopterId,
-          name: 'Adopter Name',
+          name: 'Adopter Name', // Replace with actual user name
         }}
       />
     </SafeAreaView>

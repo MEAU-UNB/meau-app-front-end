@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text, View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -12,18 +12,21 @@ const getRandomDogName = () => {
   const index = Math.floor(Math.random() * dogNames.length);
   return dogNames[index];
 };
-
 const TelaInteressadoAnimal = () => {
   const [liked, setLiked] = useState(images.map(() => false));
   const [names] = useState(images.map(() => getRandomDogName()));
+
 
   const toggleLike = (index: number) => {
     setLiked((prevLiked) => {
       const newLiked = [...prevLiked];
       newLiked[index] = !newLiked[index];
+
+
       return newLiked;
     });
   };
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
