@@ -22,12 +22,29 @@ const ChatScreen = () => {
   const adopterId = params.animalAdopter as string;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [adopterName, setAdopterName] = useState<string>('');
 
   useEffect(() => {
     if (!adopterId || !ownerId) {
       console.log("Error: Invalid IDs");
       return;
     }
+
+    // Fetch adopter's username
+    const fetchAdopterName = async () => {
+      try {
+        const userRef = doc(db, 'users', adopterId);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setAdopterName(userData?.username || 'Adopter Name');
+        }
+      } catch (error) {
+        console.error('Error fetching adopter name:', error);
+      }
+    };
+
+    fetchAdopterName();
 
     const messagesRef = collection(db, 'chatMessages');
     const q = query(messagesRef, orderBy('createdAt', 'desc'));
@@ -104,14 +121,12 @@ const ChatScreen = () => {
         text: message.text,
         createdAt: Timestamp.fromDate(new Date()),
         userId: adopterId,
-        userName: 'Adopter Name', // Replace with actual user name
+        userName: adopterName, // Use fetched adopter name
         recipientId: ownerId,
       });
 
-      // Fetch the recipient's push token
       const recipientPushToken = await fetchRecipientPushToken(ownerId);
       if (recipientPushToken) {
-        // Send the push notification
         await sendPushNotification(recipientPushToken, message.text);
       }
     }
@@ -130,7 +145,7 @@ const ChatScreen = () => {
         onSend={handleSend}
         user={{
           _id: adopterId,
-          name: 'Adopter Name', // Replace with actual user name
+          name: adopterName, // Use fetched adopter name
         }}
       />
     </SafeAreaView>

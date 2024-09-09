@@ -1,111 +1,162 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { db } from '../../firebaseConfig';
-import { collection, query, where, onSnapshot, getDoc, doc, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import { getCurrentUser } from '@/firebaseService/AuthService';
 import { useFocusEffect } from '@react-navigation/native';
 
+interface ChatMessage {
+  id: string;
+  userId: string; // Sender's ID
+  recipientId: string; // Recipient's ID
+  text: string;
+  userName: string;
+  createdAt: Date;
+  ownerId: string;
+}
+
+interface ChatRequest {
+  id: string;
+  adopterId: string;
+  ownerId: string;
+  status: string;
+  isRequest: boolean; // Flag for identifying requests
+}
+
+type ChatItem = ChatMessage | ChatRequest;
+
+// Type guard to check if the item is a ChatMessage
+function isChatMessage(item: ChatItem): item is ChatMessage {
+  return (item as ChatMessage).userName !== undefined;
+}
+
 const ChatListScreen = () => {
-  const [chats, setChats] = useState<any[]>([]);
-  const userId = getCurrentUser().uid.toString();
+  const [chats, setChats] = useState<ChatItem[]>([]);
+  const userId = getCurrentUser().uid;
   const router = useRouter();
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   const fetchChats = useCallback(() => {
-    // Query pra mensagens q enviei
     const chatsRef = collection(db, 'chatMessages');
-    const sentMessagesQuery = query(chatsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+    const chatRequestsRef = collection(db, 'chatRequests');
 
-    // Query pra mensagens q recebi
+    const receivedRequestsQuery = query(chatRequestsRef, where('ownerId', '==', userId), where('status', '==', 'pending'));
+    const sentMessagesQuery = query(chatsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
     const receivedMessagesQuery = query(chatsRef, where('recipientId', '==', userId), orderBy('createdAt', 'desc'));
 
-    const unsubscribeSent = onSnapshot(sentMessagesQuery, async (sentQuerySnapshot) => {
-      const chatMap: { [key: string]: any } = {};
+    const chatMap = new Map<string, ChatItem>();
 
-      sentQuerySnapshot.docs.forEach((doc) => {
-        const data = doc.data();
-        const otherUserId = data.recipientId;
+    // Fetch pending chat requests
+    const unsubscribeRequests = onSnapshot(receivedRequestsQuery, (requestSnapshot) => {
+      const requestList = requestSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        isRequest: true, // Flag to identify it's a request
+      } as ChatRequest));
 
-        // update se for mais nova
-        if (!chatMap[otherUserId] || data.createdAt.toDate() > chatMap[otherUserId].timestamp) {
-          chatMap[otherUserId] = {
-            id: otherUserId,
-            lastMessage: data.text,
-            timestamp: data.createdAt.toDate(),
-          };
-        }
+      requestList.forEach((request) => {
+        chatMap.set(request.adopterId, request); // Group by adopterId
       });
+      setChats(Array.from(chatMap.values()));
+    });
 
-      // Query pra mensagens
-      const unsubscribeReceived = onSnapshot(receivedMessagesQuery, async (receivedQuerySnapshot) => {
-        receivedQuerySnapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          const otherUserId = data.userId;
+    // Fetch sent messages
+    const unsubscribeSent = onSnapshot(sentMessagesQuery, (sentQuerySnapshot) => {
+      const sentList = sentQuerySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      } as ChatMessage));
 
-          // update
-          if (!chatMap[otherUserId] || data.createdAt.toDate() > chatMap[otherUserId].timestamp) {
-            chatMap[otherUserId] = {
-              id: otherUserId,
-              lastMessage: data.text,
-              timestamp: data.createdAt.toDate(),
-            };
-          }
-        });
-
-        // convertee mensagens pra array e pega timestamp
-        const chatList = Object.values(chatMap);
-        chatList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort by most recent message
-
-        // logicazinha pra pegar mensagem de todos os users
-        const usernamePromises = chatList.map(async (chat) => {
-          const userRef = doc(db, 'users', chat.id);
-          const userDoc = await getDoc(userRef);
-          return {
-            ...chat,
-            username: userDoc.exists() ? userDoc.data()?.username || 'Unknown' : 'Unknown',
-          };
-        });
-
-        const chatsWithUsernames = await Promise.all(usernamePromises);
-
-        console.log("Grouped chatList with usernames: ", JSON.stringify(chatsWithUsernames, null, 2));
-        setChats(chatsWithUsernames);
+      sentList.forEach((message) => {
+        chatMap.set(message.recipientId, message); // Group by recipientId
       });
+      setChats(Array.from(chatMap.values()));
+    });
 
-      return () => {
-        unsubscribeReceived();
-      };
+    // Fetch received messages
+    const unsubscribeReceived = onSnapshot(receivedMessagesQuery, (receivedQuerySnapshot) => {
+      const receivedList = receivedQuerySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      } as ChatMessage));
+
+      receivedList.forEach((message) => {
+        chatMap.set(message.userId, message); // Group by userId
+      });
+      setChats(Array.from(chatMap.values()));
     });
 
     return () => {
+      unsubscribeRequests();
       unsubscribeSent();
+      unsubscribeReceived();
     };
   }, [userId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchChats();
-    }, [fetchChats])
-  );
+  useEffect(() => {
+    const unsubscribe = fetchChats();
+    return () => unsubscribe();
+  }, [fetchChats]);
 
-  const renderChatItem = ({ item }: { item: any }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => 
-          router.push({
-            pathname: '/(tabs)/telaChat',
-            params: {
-              animalOwner: item.id,
-              animalAdopter: userId,
-            },
-          })
-        }
-        style={styles.chatItem}
-      >
-        <Text style={styles.chatTitle}>Conversa com {item.username}</Text>
-        <Text>{item.lastMessage}</Text>
-      </TouchableOpacity>
-    );
+  const handleAcceptRequest = async (requestId: string, adopterId: string) => {
+    const requestRef = doc(db, 'chatRequests', requestId);
+
+    try {
+      await updateDoc(requestRef, { status: 'accepted' });
+      Alert.alert('Request accepted', 'You can now chat with the adopter.');
+      router.push({
+        pathname: '/(tabs)/telaChat',
+        params: {
+          animalOwner: userId,
+          animalAdopter: adopterId,
+        },
+      });
+    } catch (error) {
+      console.error('Error accepting request:', error);
+      Alert.alert('Error', 'Failed to accept the request.');
+    }
+  };
+
+  const renderChatItem = ({ item }: { item: ChatItem }) => {
+    if (isChatMessage(item)) {
+      // If it's a chat message, render the message details
+      return (
+        <TouchableOpacity
+          onPress={() => 
+            router.push({
+              pathname: '/(tabs)/telaChat',
+              params: {
+                animalOwner: item.ownerId,
+                animalAdopter: userId,
+              },
+            })
+          }
+          style={styles.chatItem}
+        >
+          <Text style={styles.chatTitle}>Conversa com {item.userName}</Text>
+          <Text>{item.text}</Text>
+        </TouchableOpacity>
+      );
+    } else {
+      // If it's a chat request, show the accept option
+      return (
+        <TouchableOpacity 
+          onPress={() => handleAcceptRequest(item.id, item.adopterId)} 
+          style={styles.chatItem}
+        >
+          <Text style={styles.chatTitle}>Request from {item.adopterId}</Text>
+          <Text>Click to accept and start chatting</Text>
+        </TouchableOpacity>
+      );
+    }
   };
 
   return (
@@ -114,24 +165,33 @@ const ChatListScreen = () => {
         data={chats}
         renderItem={renderChatItem}
         keyExtractor={(item) => item.id}
+        ListEmptyComponent={<Text style={styles.emptyMessage}>Nenhuma conversa disponível.</Text>}
       />
     </View>
   );
 };
 
+export default ChatListScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    backgroundColor: '#fff',
   },
   chatItem: {
     padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    marginBottom: 10,
+    borderRadius: 8,
+    backgroundColor: '#f2f2f2',
   },
   chatTitle: {
-    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  emptyMessage: {
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#888',
   },
 });
-
-export default ChatListScreen;
