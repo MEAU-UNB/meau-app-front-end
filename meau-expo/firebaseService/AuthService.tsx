@@ -7,14 +7,11 @@ const isUserAuthenticated = () => {
   return currentUser !== null; // Check for a logged-in user
 };
 
-const signOutUser = async () => {
-  try {
-    await signOut(auth);
-    console.log('User signed out successfully');
-  } catch (error) {
-    console.error('Error signing out:', error);
-  }
-};
+const signOutUser = () => signOut(auth).then(() => {
+  // Sign-out successful.
+}).catch((error) => {
+  // An error happened.
+});
 
 const getCurrentUser = () => {
   if (!isUserAuthenticated()) {
@@ -25,4 +22,3 @@ const getCurrentUser = () => {
 }
 
 export { isUserAuthenticated, getCurrentUser, signOutUser };
-

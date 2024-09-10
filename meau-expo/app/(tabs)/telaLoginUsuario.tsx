@@ -26,7 +26,6 @@ export default function TelaAutenticacao() {
 
                 const response = await signInWithEmailAndPassword(auth, username, password);
                 router.push("/");
-                Alert.alert('Login de ' + username + ' realizado com sucesso!');
             } catch (error: any) {
                 const errorCode = error.code;
                 const errorMessage = error.message;
