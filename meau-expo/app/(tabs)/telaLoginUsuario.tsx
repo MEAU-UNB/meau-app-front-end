@@ -16,21 +16,28 @@ export default function TelaAutenticacao() {
     const [password, setPassword] = React.useState('');
 
     const handleLogin = async () => {
-        // Use the imported auth object here:
         if (isUserAuthenticated()) {
-            Alert.alert("Aviso", "Não você não pode realizar esta ação");
-            alert("Não você não pode realizar esta ação");
-            // navegar para a tela inicial: router.navigate("../index");
-        } else {
-            try {
-
-                const response = await signInWithEmailAndPassword(auth, username, password);
+            Alert.alert("Aviso", "Você não pode realizar esta ação");
+            // Navigate to the home screen if already authenticated
+            router.navigate("../index");
+            return; // Exit the function
+        }
+    
+        try {
+            const response = await signInWithEmailAndPassword(auth, username, password);
+    
+            if (response.user) {
+                // Only navigate if the login is successful
                 router.push("/");
-            } catch (error: any) {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                Alert.alert(errorCode, errorMessage);
+                Alert.alert('Login de ' + username + ' realizado com sucesso!');
+            } else {
+                // Handle case where response is not as expected
+                Alert.alert("Erro", "Não foi possível realizar o login.");
             }
+        } catch (error: any) {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            Alert.alert(errorCode, errorMessage);
         }
     };
     const [fontsLoaded] = useFonts({
