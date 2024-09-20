@@ -10,7 +10,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from 'expo-constants';
-import { collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebaseConfig';
 
 const { width } = Dimensions.get('window');
@@ -217,27 +217,43 @@ const TelaDetalheAnimal = () => {
     return typeof text === 'string' ? text : JSON.stringify(text);
   };
 
-  const handleAdoptButtonPress = () => {
+  const handleAdoptButtonPress = async () => {
     if (!isUserAuthenticated()) {
       alert("Não foi autenticado");
       router.push("/(tabs)/telaAutenticacao");
     } else {
       if (animal.userId) {
-
-        console.log("IDS: " + animal.userId + " " + getCurrentUser().uid)
-
-        router.push({
-          pathname: '/(tabs)/telaChat',
-          params: {
-            animalOwner: animal.userId.toString(),
-            animalAdopter: getCurrentUser().uid.toString(),
-          },
-        })
+        const currentUser = getCurrentUser();
+        const chatRequestRef = doc(collection(db, 'chatRequests')); // Create a new document for the request
+        const requestData = {
+          adopterId: currentUser.uid.toString(),
+          ownerId: animal.userId.toString(),
+          animalId: animalId,
+          status: 'pending', // New field to track if the request has been accepted
+          createdAt: new Date(),
+        };
+  
+        try {
+          // Save the chat request to Firestore
+          await setDoc(chatRequestRef, requestData);
+  
+          // Optionally, send a notification to the owner
+          const ownerData = await fetchOwnerData(animal.userId.toString());
+          if (ownerData && ownerData.pushToken) {
+            await sendPushNotificationToOwner(ownerData.pushToken);
+          }
+          
+          Alert.alert("Success", "Request sent to the owner.");
+        } catch (error) {
+          console.error("Error creating chat request:", error);
+          Alert.alert("Error", "Failed to send the request.");
+        }
       } else {
         Alert.alert("Error", "Animal does not have a registered user ID");
       }
     }
   };
+  
 
   const printLiked = async () => {
     console.log('Liked');
